@@ -6,11 +6,15 @@ on:
     paths:
       - 'backend/**'
       - '.github/workflows/backend.yml'
+      # Skip doc-only changes — Markdown under backend/ doesn't affect the build.
+      - '!backend/**.md'
   pull_request:
     branches: [main]
     paths:
       - 'backend/**'
       - '.github/workflows/backend.yml'
+      # Skip doc-only changes — Markdown under backend/ doesn't affect the build.
+      - '!backend/**.md'
   workflow_dispatch:
 
 jobs:
