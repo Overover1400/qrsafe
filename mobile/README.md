@@ -1,5 +1,8 @@
 # mobile
 
+[![Build Android APK](https://github.com/Overover1400/qrsafe/actions/workflows/mobile.yml/badge.svg)](https://github.com/Overover1400/qrsafe/actions/workflows/mobile.yml)
+[![Build Web](https://github.com/Overover1400/qrsafe/actions/workflows/web.yml/badge.svg)](https://github.com/Overover1400/qrsafe/actions/workflows/web.yml)
+
 A new Flutter project.
 
 ## Getting Started
