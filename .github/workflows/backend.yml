@@ -1,0 +1,90 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend.yml'
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Build, vet & test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: qrsafe
+          POSTGRES_PASSWORD: ci_test_password
+          POSTGRES_DB: qrsafe_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U qrsafe -d qrsafe_test"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=5
+
+      redis:
+        image: redis:7
+        # Require a password so tests exercise the authenticated Redis path.
+        command: redis-server --requirepass ci_test_password
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli -a ci_test_password ping"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: true
+          cache-dependency-path: backend/go.sum
+
+      - name: Install migrate CLI
+        run: |
+          go install -tags 'postgres' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+
+      - name: Verify go.mod is tidy
+        run: |
+          go mod tidy
+          git diff --exit-code go.mod go.sum
+
+      - name: Run migrations
+        env:
+          DATABASE_URL: postgres://qrsafe:ci_test_password@localhost:5432/qrsafe_test?sslmode=disable
+        run: migrate -path migrations -database "$DATABASE_URL" up
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Build
+        run: go build ./...
+
+      - name: Test
+        env:
+          DATABASE_URL: postgres://qrsafe:ci_test_password@localhost:5432/qrsafe_test?sslmode=disable
+          REDIS_ADDR: localhost:6379
+          REDIS_PASSWORD: ci_test_password
+          REDIS_DB: '0'
+          JWT_SECRET: ci_test_secret_at_least_32_bytes_long_xxxx
+        run: go test ./... -race -cover -count=1

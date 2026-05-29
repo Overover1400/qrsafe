@@ -1,12 +1,14 @@
 // DB strategy for repository tests: a live Postgres, addressed via the
-// TEST_DATABASE_URL environment variable. Docker is not available on this dev
-// box, so testcontainers is out; and because these tests exist precisely to
-// exercise real SQL (the citext UNIQUE constraint, RETURNING clauses, NULL
-// handling for guests), a mock would test the wrong thing. When TEST_DATABASE_URL
-// is unset the tests skip, so `go test ./...` stays green without a database.
+// TEST_DATABASE_URL environment variable (falling back to DATABASE_URL). Docker
+// is not available on this dev box, so testcontainers is out; and because these
+// tests exist precisely to exercise real SQL (the citext UNIQUE constraint,
+// RETURNING clauses, NULL handling for guests), a mock would test the wrong
+// thing. When neither variable is set the tests skip, so `go test ./...` stays
+// green without a database.
 //
-// Point TEST_DATABASE_URL at a throwaway database — the tests TRUNCATE the
-// users table. e.g.
+// The fallback to DATABASE_URL is what lets CI run these tests against its
+// Postgres service container without a bespoke variable. Point either variable
+// at a throwaway database — the tests TRUNCATE the users table. e.g.
 //   TEST_DATABASE_URL=postgres://qrsafe:pw@localhost:5432/qrsafe_dev?sslmode=disable go test ./internal/users/...
 package users_test
 
@@ -33,14 +35,17 @@ CREATE TABLE IF NOT EXISTS users (
   updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );`
 
-// newTestPool connects to TEST_DATABASE_URL, ensures the schema exists, and
-// truncates the users table so each test starts clean. It skips the test if no
-// database is configured.
+// newTestPool connects to TEST_DATABASE_URL (or DATABASE_URL if that is unset),
+// ensures the schema exists, and truncates the users table so each test starts
+// clean. It skips the test if no database is configured.
 func newTestPool(t *testing.T) *pgxpool.Pool {
 	t.Helper()
 	url := os.Getenv("TEST_DATABASE_URL")
 	if url == "" {
-		t.Skip("TEST_DATABASE_URL not set; skipping live Postgres repository tests")
+		url = os.Getenv("DATABASE_URL")
+	}
+	if url == "" {
+		t.Skip("neither TEST_DATABASE_URL nor DATABASE_URL set; skipping live Postgres repository tests")
 	}
 
 	ctx := context.Background()
