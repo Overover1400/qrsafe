@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/Overover1400/qrsafe/internal/auth"
+	"github.com/Overover1400/qrsafe/internal/codes"
 	"github.com/Overover1400/qrsafe/internal/config"
 	httpserver "github.com/Overover1400/qrsafe/internal/http"
 	"github.com/Overover1400/qrsafe/internal/http/handlers"
@@ -69,10 +70,18 @@ func run(logger *slog.Logger) error {
 	repo := users.NewRepository(pool)
 	authSvc := auth.NewService(repo, tokens)
 
+	codesRepo := codes.NewRepository(pool)
+	redirectCache := codes.NewRedisCache(rdb)
+	codesSvc := codes.NewService(codesRepo, redirectCache, logger)
+	redirectSvc := codes.NewRedirectService(codesRepo, redirectCache, logger)
+
 	healthHandler := handlers.NewHealthHandler(pool, redisPinger{c: rdb})
 	authHandler := handlers.NewAuthHandler(authSvc)
+	codesHandler := handlers.NewCodesHandler(codesSvc, cfg.PublicBaseURL)
+	redirectHandler := handlers.NewRedirectHandler(redirectSvc, logger)
 
-	srv := httpserver.NewServer(net.JoinHostPort("", cfg.Port), logger, tokens, healthHandler, authHandler)
+	srv := httpserver.NewServer(net.JoinHostPort("", cfg.Port), logger, tokens,
+		healthHandler, authHandler, codesHandler, redirectHandler)
 
 	// Run the server and wait for either a fatal serve error or a signal.
 	serveErr := make(chan error, 1)

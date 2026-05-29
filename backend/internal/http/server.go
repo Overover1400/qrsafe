@@ -30,12 +30,18 @@ func NewServer(
 	tokens *auth.TokenManager,
 	health *handlers.HealthHandler,
 	authHandler *handlers.AuthHandler,
+	codesHandler *handlers.CodesHandler,
+	redirectHandler *handlers.RedirectHandler,
 ) *Server {
 	r := chi.NewRouter()
 	r.Use(mw.Recover(logger))
 	r.Use(mw.Logger(logger))
 
 	r.Get("/health", health.Health)
+
+	// Public, unauthenticated redirect for dynamic QR codes. Mounted at the
+	// root (outside /api/v1) so scanned codes resolve without a token.
+	r.Get("/r/{slug}", redirectHandler.Redirect)
 
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Route("/auth", func(r chi.Router) {
@@ -46,6 +52,17 @@ func NewServer(
 				r.Use(mw.Auth(tokens))
 				r.Post("/upgrade", authHandler.Upgrade)
 			})
+		})
+
+		// Codes CRUD — all protected; guest and full accounts may both manage
+		// their own codes.
+		r.Group(func(r chi.Router) {
+			r.Use(mw.Auth(tokens))
+			r.Post("/codes", codesHandler.Create)
+			r.Get("/codes", codesHandler.List)
+			r.Get("/codes/{id}", codesHandler.Get)
+			r.Patch("/codes/{id}", codesHandler.Update)
+			r.Delete("/codes/{id}", codesHandler.Delete)
 		})
 	})
 

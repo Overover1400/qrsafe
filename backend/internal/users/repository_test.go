@@ -55,7 +55,9 @@ func newTestPool(t *testing.T) *pgxpool.Pool {
 
 	_, err = pool.Exec(ctx, schemaSQL)
 	require.NoError(t, err, "ensuring schema")
-	_, err = pool.Exec(ctx, "TRUNCATE users")
+	// CASCADE is required because the codes table (migration 0002) references
+	// users; a plain TRUNCATE would error on the foreign key.
+	_, err = pool.Exec(ctx, "TRUNCATE users CASCADE")
 	require.NoError(t, err, "truncating users")
 
 	t.Cleanup(pool.Close)

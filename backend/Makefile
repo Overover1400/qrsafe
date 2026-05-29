@@ -35,8 +35,11 @@ migrate-create:
 	migrate create -ext sql -dir migrations -seq $(name)
 
 ## test: run all tests with the race detector and coverage
+# -p 1 runs package test binaries one at a time. Multiple packages share the
+# one test database and truncate tables between tests, so serializing them
+# avoids cross-package truncation races.
 test:
-	go test -race -cover ./...
+	go test -race -cover -p 1 ./...
 
 ## tidy: sync go.mod/go.sum
 tidy:

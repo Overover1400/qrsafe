@@ -91,4 +91,6 @@ jobs:
           REDIS_PASSWORD: ci_test_password
           REDIS_DB: '0'
           JWT_SECRET: ci_test_secret_at_least_32_bytes_long_xxxx
-        run: go test ./... -race -cover -count=1
+        # -p 1: package test binaries share the one service-container database
+        # and truncate tables between tests, so run them serially.
+        run: go test ./... -race -cover -count=1 -p 1

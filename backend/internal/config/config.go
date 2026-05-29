@@ -16,6 +16,8 @@ type Config struct {
 	Port string
 	Env  string
 
+	PublicBaseURL string
+
 	DatabaseURL string
 
 	RedisAddr     string
@@ -31,6 +33,7 @@ func Load() (*Config, error) {
 	cfg := &Config{
 		Port:          getEnv("PORT", "8080"),
 		Env:           getEnv("ENV", "development"),
+		PublicBaseURL: getEnv("PUBLIC_BASE_URL", "http://localhost:8080"),
 		DatabaseURL:   os.Getenv("DATABASE_URL"),
 		RedisAddr:     getEnv("REDIS_ADDR", "localhost:6379"),
 		RedisPassword: os.Getenv("REDIS_PASSWORD"),

@@ -104,7 +104,10 @@ func newTestEnv(t *testing.T) *testEnv {
 
 	health := handlers.NewHealthHandler(okPinger{}, okPinger{})
 	authHandler := handlers.NewAuthHandler(svc)
-	srv := httpserver.NewServer(":0", discardLogger(), tokens, health, authHandler)
+	// Codes/redirect handlers are nil here: these auth tests never hit those
+	// routes, and registering a method value of a nil pointer is safe until it
+	// is actually called.
+	srv := httpserver.NewServer(":0", discardLogger(), tokens, health, authHandler, nil, nil)
 
 	return &testEnv{handler: srv.Handler(), tokens: tokens}
 }
