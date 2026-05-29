@@ -23,6 +23,9 @@ backend/tmp/
 backend/*.env
 backend/.env
 
+# Go SDK tarballs (downloaded locally, not part of the repo)
+go*.linux-amd64.tar.gz
+
 # Secrets
 .env
 .env.local

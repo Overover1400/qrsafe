@@ -1,0 +1,12 @@
+# Local environment — never commit real secrets.
+.env
+.env.local
+*.env
+
+# Build artifacts
+/bin/
+/tmp/
+
+# Test / coverage output
+coverage.out
+*.test
