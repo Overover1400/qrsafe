@@ -1,5 +1,7 @@
 # QRSafe Backend
 
+[![Backend CI](https://github.com/Overover1400/qrsafe/actions/workflows/backend.yml/badge.svg)](https://github.com/Overover1400/qrsafe/actions/workflows/backend.yml)
+
 HTTP API for QRSafe, written in Go. It provides guest-first authentication:
 clients start as anonymous guests and can later upgrade to a full
 email + password account, keeping the same user id.
