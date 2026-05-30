@@ -105,6 +105,54 @@ func TestServiceUpdateDestinationOnStaticFails(t *testing.T) {
 	require.ErrorIs(t, err, codes.ErrNotDynamic)
 }
 
+func TestServiceAnalytics(t *testing.T) {
+	pool := newTestPool(t)
+	rdb := newTestRedis(t)
+	repo := codes.NewRepository(pool)
+	svc := codes.NewService(repo, codes.NewRedisCache(rdb), discardLogger(), nil)
+	ctx := context.Background()
+	userID := insertUser(t, pool)
+
+	// Dynamic code with a couple of scans.
+	c, err := svc.Create(ctx, codes.CreateInput{
+		UserID:    userID,
+		Type:      string(codes.TypeURL),
+		Payload:   json.RawMessage(`{"url":"https://a.example"}`),
+		IsDynamic: true,
+	})
+	require.NoError(t, err)
+	for _, ip := range []string{"ip-1", "ip-1", "ip-2"} {
+		ipc := ip
+		require.NoError(t, repo.InsertScanEvent(ctx, &codes.ScanEvent{Slug: c.Dynamic.Slug, IPHash: &ipc, UserAgent: ptr("curl/8")}))
+	}
+
+	a, err := svc.Analytics(ctx, userID, c.ID)
+	require.NoError(t, err)
+	require.Equal(t, c.ID, a.CodeID)
+	require.Equal(t, 3, a.TotalScans)
+	require.Equal(t, 2, a.UniqueVisitors)
+	require.Len(t, a.Daily, 1)
+	require.Len(t, a.TopUserAgents, 1)
+
+	// Static code → zeroed analytics (no slug, no scans), never nil slices.
+	static, err := svc.Create(ctx, codes.CreateInput{
+		UserID:  userID,
+		Type:    string(codes.TypeText),
+		Payload: json.RawMessage(`{"text":"hi"}`),
+	})
+	require.NoError(t, err)
+	sa, err := svc.Analytics(ctx, userID, static.ID)
+	require.NoError(t, err)
+	require.Equal(t, 0, sa.TotalScans)
+	require.NotNil(t, sa.Daily)
+	require.NotNil(t, sa.TopUserAgents)
+
+	// Another user can't see these analytics.
+	other := insertUser(t, pool)
+	_, err = svc.Analytics(ctx, other, c.ID)
+	require.ErrorIs(t, err, codes.ErrNotFound)
+}
+
 func TestServiceDeleteCascadesDynamic(t *testing.T) {
 	pool := newTestPool(t)
 	rdb := newTestRedis(t)

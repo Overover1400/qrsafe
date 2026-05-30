@@ -108,6 +108,51 @@ func TestRepositorySlugCollision(t *testing.T) {
 	require.Len(t, list, 1)
 }
 
+func TestRepositoryScanAnalytics(t *testing.T) {
+	pool := newTestPool(t)
+	repo := codes.NewRepository(pool)
+	ctx := context.Background()
+	userID := insertUser(t, pool)
+
+	dyn := &codes.Code{UserID: userID, Type: string(codes.TypeURL), Payload: json.RawMessage(`{"url":"https://a.example"}`)}
+	require.NoError(t, repo.CreateDynamic(ctx, dyn, "anlytcs1", "https://a.example"))
+	slug := dyn.Dynamic.Slug
+
+	// Two distinct IPs (one repeated) and two user agents.
+	events := []codes.ScanEvent{
+		{Slug: slug, IPHash: ptr("ip-a"), UserAgent: ptr("curl/8")},
+		{Slug: slug, IPHash: ptr("ip-a"), UserAgent: ptr("curl/8")},
+		{Slug: slug, IPHash: ptr("ip-b"), UserAgent: ptr("Mozilla/5.0")},
+		{Slug: slug, IPHash: nil, UserAgent: nil}, // unknown ip + ua
+	}
+	for i := range events {
+		e := events[i]
+		require.NoError(t, repo.InsertScanEvent(ctx, &e))
+	}
+
+	total, unique, err := repo.ScanCounts(ctx, slug)
+	require.NoError(t, err)
+	require.Equal(t, 4, total)
+	require.Equal(t, 2, unique, "distinct non-null ip_hash count")
+
+	daily, err := repo.ScanDaily(ctx, slug)
+	require.NoError(t, err)
+	require.Len(t, daily, 1, "all scans recorded today → one bucket")
+	require.Equal(t, 4, daily[0].Count)
+
+	uas, err := repo.ScanTopUserAgents(ctx, slug, 10)
+	require.NoError(t, err)
+	require.Len(t, uas, 2)
+	require.Equal(t, "curl/8", uas[0].UserAgent, "most frequent first")
+	require.Equal(t, 2, uas[0].Count)
+
+	// A slug with no scans yields zeros / empty.
+	total, unique, err = repo.ScanCounts(ctx, "noscans1")
+	require.NoError(t, err)
+	require.Equal(t, 0, total)
+	require.Equal(t, 0, unique)
+}
+
 func TestRepositoryUserIsolation(t *testing.T) {
 	pool := newTestPool(t)
 	repo := codes.NewRepository(pool)

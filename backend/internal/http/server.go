@@ -66,6 +66,7 @@ func NewServer(addr string, logger *slog.Logger, tokens *auth.TokenManager, h Ha
 			r.Get("/codes/{id}", h.Codes.Get)
 			r.Patch("/codes/{id}", h.Codes.Update)
 			r.Delete("/codes/{id}", h.Codes.Delete)
+			r.Get("/codes/{id}/analytics", h.Codes.Analytics)
 
 			// URL safety check.
 			r.Post("/scan/check", h.Safety.Check)

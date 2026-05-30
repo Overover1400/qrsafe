@@ -229,6 +229,77 @@ func (r *Repository) InsertScanEvent(ctx context.Context, e *ScanEvent) error {
 	return nil
 }
 
+// ScanCounts returns the total scan count and the distinct-ip_hash (unique
+// visitor) count for a slug. NULL ip_hash values are ignored by COUNT DISTINCT.
+func (r *Repository) ScanCounts(ctx context.Context, slug string) (total, unique int, err error) {
+	const q = `
+		SELECT count(*), count(DISTINCT ip_hash)
+		FROM scan_events
+		WHERE slug = $1`
+	if err := r.db.QueryRow(ctx, q, slug).Scan(&total, &unique); err != nil {
+		return 0, 0, fmt.Errorf("counting scans: %w", err)
+	}
+	return total, unique, nil
+}
+
+// ScanDaily returns scan totals bucketed by UTC day, oldest first.
+func (r *Repository) ScanDaily(ctx context.Context, slug string) ([]DayCount, error) {
+	const q = `
+		SELECT to_char((scanned_at AT TIME ZONE 'UTC')::date, 'YYYY-MM-DD') AS day, count(*)
+		FROM scan_events
+		WHERE slug = $1
+		GROUP BY day
+		ORDER BY day`
+	rows, err := r.db.Query(ctx, q, slug)
+	if err != nil {
+		return nil, fmt.Errorf("querying daily scans: %w", err)
+	}
+	defer rows.Close()
+
+	out := []DayCount{}
+	for rows.Next() {
+		var d DayCount
+		if err := rows.Scan(&d.Date, &d.Count); err != nil {
+			return nil, fmt.Errorf("scanning daily row: %w", err)
+		}
+		out = append(out, d)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterating daily scans: %w", err)
+	}
+	return out, nil
+}
+
+// ScanTopUserAgents returns the most common user agents for a slug, most
+// frequent first, capped at limit. Rows with a NULL user_agent are excluded.
+func (r *Repository) ScanTopUserAgents(ctx context.Context, slug string, limit int) ([]UserAgentCount, error) {
+	const q = `
+		SELECT user_agent, count(*)
+		FROM scan_events
+		WHERE slug = $1 AND user_agent IS NOT NULL
+		GROUP BY user_agent
+		ORDER BY count(*) DESC, user_agent ASC
+		LIMIT $2`
+	rows, err := r.db.Query(ctx, q, slug, limit)
+	if err != nil {
+		return nil, fmt.Errorf("querying top user agents: %w", err)
+	}
+	defer rows.Close()
+
+	out := []UserAgentCount{}
+	for rows.Next() {
+		var ua UserAgentCount
+		if err := rows.Scan(&ua.UserAgent, &ua.Count); err != nil {
+			return nil, fmt.Errorf("scanning user agent row: %w", err)
+		}
+		out = append(out, ua)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterating user agents: %w", err)
+	}
+	return out, nil
+}
+
 // scanCode scans a joined codes/dynamic_codes row. The dynamic columns are
 // nullable (LEFT JOIN); when present they populate Code.Dynamic.
 func scanCode(row pgx.Row) (*Code, error) {

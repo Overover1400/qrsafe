@@ -41,7 +41,13 @@ type repository interface {
 	UpdateLabel(ctx context.Context, userID, id uuid.UUID, label *string) error
 	UpdateDestination(ctx context.Context, codeID uuid.UUID, destination string) error
 	Delete(ctx context.Context, userID, id uuid.UUID) error
+	ScanCounts(ctx context.Context, slug string) (total, unique int, err error)
+	ScanDaily(ctx context.Context, slug string) ([]DayCount, error)
+	ScanTopUserAgents(ctx context.Context, slug string, limit int) ([]UserAgentCount, error)
 }
+
+// topUserAgentsLimit caps how many user agents the analytics breakdown returns.
+const topUserAgentsLimit = 10
 
 // DestinationChecker validates a dynamic code's destination URL. A nil checker
 // disables gating (the safety check is then only available via /scan/check).
@@ -257,6 +263,43 @@ func (s *Service) Delete(ctx context.Context, userID, id uuid.UUID) error {
 		}
 	}
 	return nil
+}
+
+// Analytics returns all-time scan analytics for one of the user's codes. It is
+// owner-scoped (ErrNotFound if the code isn't theirs). A static code has no
+// slug and therefore no scans, so it returns a zeroed result.
+func (s *Service) Analytics(ctx context.Context, userID, id uuid.UUID) (*Analytics, error) {
+	c, err := s.repo.GetByID(ctx, userID, id)
+	if err != nil {
+		return nil, err
+	}
+
+	a := &Analytics{CodeID: id, Daily: []DayCount{}, TopUserAgents: []UserAgentCount{}}
+	if c.Dynamic == nil {
+		return a, nil
+	}
+	slug := c.Dynamic.Slug
+
+	total, unique, err := s.repo.ScanCounts(ctx, slug)
+	if err != nil {
+		return nil, fmt.Errorf("scan counts: %w", err)
+	}
+	a.TotalScans = total
+	a.UniqueVisitors = unique
+
+	daily, err := s.repo.ScanDaily(ctx, slug)
+	if err != nil {
+		return nil, fmt.Errorf("daily scans: %w", err)
+	}
+	a.Daily = daily
+
+	uas, err := s.repo.ScanTopUserAgents(ctx, slug, topUserAgentsLimit)
+	if err != nil {
+		return nil, fmt.Errorf("top user agents: %w", err)
+	}
+	a.TopUserAgents = uas
+
+	return a, nil
 }
 
 // Cursor is the keyset position used for list pagination.

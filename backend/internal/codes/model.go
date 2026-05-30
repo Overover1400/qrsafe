@@ -58,6 +58,27 @@ type ScanEvent struct {
 	ScannedAt time.Time
 }
 
+// Analytics summarizes the scan activity for a single code (all-time).
+type Analytics struct {
+	CodeID         uuid.UUID
+	TotalScans     int
+	UniqueVisitors int // distinct non-null ip_hash values
+	Daily          []DayCount
+	TopUserAgents  []UserAgentCount
+}
+
+// DayCount is a single day's scan total. Date is "YYYY-MM-DD" in UTC.
+type DayCount struct {
+	Date  string
+	Count int
+}
+
+// UserAgentCount is a scan total for one user-agent string.
+type UserAgentCount struct {
+	UserAgent string
+	Count     int
+}
+
 // IsJSONObject reports whether b is a syntactically valid JSON object ({...}).
 // Arrays, scalars and null are rejected.
 func IsJSONObject(b []byte) bool {

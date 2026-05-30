@@ -24,6 +24,7 @@ type CodesService interface {
 	List(ctx context.Context, userID uuid.UUID, cursor string, limit int) (*codes.ListResult, error)
 	Update(ctx context.Context, userID, id uuid.UUID, in codes.UpdateInput) (*codes.Code, error)
 	Delete(ctx context.Context, userID, id uuid.UUID) error
+	Analytics(ctx context.Context, userID, id uuid.UUID) (*codes.Analytics, error)
 }
 
 // CodesHandler serves the protected /api/v1/codes endpoints.
@@ -81,6 +82,28 @@ type codeEnvelope struct {
 type listResponse struct {
 	Codes      []codeEnvelope `json:"codes"`
 	NextCursor *string        `json:"next_cursor"`
+}
+
+type dayCountResponse struct {
+	Date  string `json:"date"`
+	Count int    `json:"count"`
+}
+
+type userAgentCountResponse struct {
+	UserAgent string `json:"user_agent"`
+	Count     int    `json:"count"`
+}
+
+type analyticsResponse struct {
+	CodeID         string                   `json:"code_id"`
+	TotalScans     int                      `json:"total_scans"`
+	UniqueVisitors int                      `json:"unique_visitors"`
+	Daily          []dayCountResponse       `json:"daily"`
+	TopUserAgents  []userAgentCountResponse `json:"top_user_agents"`
+}
+
+type analyticsEnvelope struct {
+	Analytics analyticsResponse `json:"analytics"`
 }
 
 // Create handles POST /api/v1/codes.
@@ -232,6 +255,45 @@ func (h *CodesHandler) Delete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	response.JSON(w, http.StatusNoContent, nil)
+}
+
+// Analytics handles GET /api/v1/codes/{id}/analytics.
+func (h *CodesHandler) Analytics(w http.ResponseWriter, r *http.Request) {
+	userID, ok := auth.UserIDFromContext(r.Context())
+	if !ok {
+		response.Error(w, http.StatusUnauthorized, "unauthorized", "missing authenticated user")
+		return
+	}
+	id, err := uuid.Parse(chi.URLParam(r, "id"))
+	if err != nil {
+		response.Error(w, http.StatusNotFound, "not_found", "code not found")
+		return
+	}
+
+	a, err := h.svc.Analytics(r.Context(), userID, id)
+	if err != nil {
+		h.writeServiceError(w, err)
+		return
+	}
+	response.JSON(w, http.StatusOK, toAnalyticsEnvelope(a))
+}
+
+func toAnalyticsEnvelope(a *codes.Analytics) analyticsEnvelope {
+	daily := make([]dayCountResponse, len(a.Daily))
+	for i, d := range a.Daily {
+		daily[i] = dayCountResponse{Date: d.Date, Count: d.Count}
+	}
+	uas := make([]userAgentCountResponse, len(a.TopUserAgents))
+	for i, u := range a.TopUserAgents {
+		uas[i] = userAgentCountResponse{UserAgent: u.UserAgent, Count: u.Count}
+	}
+	return analyticsEnvelope{Analytics: analyticsResponse{
+		CodeID:         a.CodeID.String(),
+		TotalScans:     a.TotalScans,
+		UniqueVisitors: a.UniqueVisitors,
+		Daily:          daily,
+		TopUserAgents:  uas,
+	}}
 }
 
 // toEnvelope maps a domain Code to the API response shape, attaching the dynamic

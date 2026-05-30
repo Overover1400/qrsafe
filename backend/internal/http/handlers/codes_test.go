@@ -325,6 +325,76 @@ func TestCodesPatchUnsafeDestinationRejected(t *testing.T) {
 	require.Equal(t, "unsafe_destination", errorCode(t, w.Body.Bytes()))
 }
 
+type analyticsResp struct {
+	Analytics struct {
+		CodeID         string `json:"code_id"`
+		TotalScans     int    `json:"total_scans"`
+		UniqueVisitors int    `json:"unique_visitors"`
+		Daily          []struct {
+			Date  string `json:"date"`
+			Count int    `json:"count"`
+		} `json:"daily"`
+		TopUserAgents []struct {
+			UserAgent string `json:"user_agent"`
+			Count     int    `json:"count"`
+		} `json:"top_user_agents"`
+	} `json:"analytics"`
+}
+
+func TestCodesAnalytics(t *testing.T) {
+	env := newCodesEnv(t)
+	ctx := context.Background()
+	_, token := env.newUser(t)
+
+	// Create a dynamic code and record a few scans for its slug.
+	w := env.do(t, http.MethodPost, "/api/v1/codes", token,
+		`{"type":"url","payload":{"url":"https://example.com"},"is_dynamic":true}`)
+	require.Equal(t, http.StatusCreated, w.Code, w.Body.String())
+	var created codeEnvelopeResp
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &created))
+	slug := created.Dynamic.Slug
+	for _, ip := range []string{"ip-1", "ip-1", "ip-2"} {
+		ipc := ip
+		require.NoError(t, env.repo.InsertScanEvent(ctx, &codes.ScanEvent{Slug: slug, IPHash: &ipc, UserAgent: ptrString("curl/8")}))
+	}
+
+	w = env.do(t, http.MethodGet, "/api/v1/codes/"+created.Code.ID+"/analytics", token, "")
+	require.Equal(t, http.StatusOK, w.Code, w.Body.String())
+	var resp analyticsResp
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+	require.Equal(t, created.Code.ID, resp.Analytics.CodeID)
+	require.Equal(t, 3, resp.Analytics.TotalScans)
+	require.Equal(t, 2, resp.Analytics.UniqueVisitors)
+	require.Len(t, resp.Analytics.Daily, 1)
+	require.Len(t, resp.Analytics.TopUserAgents, 1)
+}
+
+func TestCodesAnalyticsOwnershipAndStatic(t *testing.T) {
+	env := newCodesEnv(t)
+	_, ownerToken := env.newUser(t)
+	_, otherToken := env.newUser(t)
+
+	// A static code → zeros, never null slices.
+	w := env.do(t, http.MethodPost, "/api/v1/codes", ownerToken, `{"type":"text","payload":{"text":"hi"}}`)
+	require.Equal(t, http.StatusCreated, w.Code, w.Body.String())
+	var created codeEnvelopeResp
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &created))
+
+	w = env.do(t, http.MethodGet, "/api/v1/codes/"+created.Code.ID+"/analytics", ownerToken, "")
+	require.Equal(t, http.StatusOK, w.Code)
+	var resp analyticsResp
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+	require.Equal(t, 0, resp.Analytics.TotalScans)
+	require.NotNil(t, resp.Analytics.Daily)
+	require.NotNil(t, resp.Analytics.TopUserAgents)
+
+	// Another user gets 404 (not 403) — no existence leak.
+	w = env.do(t, http.MethodGet, "/api/v1/codes/"+created.Code.ID+"/analytics", otherToken, "")
+	require.Equal(t, http.StatusNotFound, w.Code)
+}
+
+func ptrString(s string) *string { return &s }
+
 // errorCode extracts error.code from an error envelope body.
 func errorCode(t *testing.T, body []byte) string {
 	t.Helper()
