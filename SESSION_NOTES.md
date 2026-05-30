@@ -240,3 +240,43 @@
 
 ### Today's commits
 - `e870e55` feat(analytics): add per-code scan analytics endpoint
+
+## 2026-05-30 — Per-IP rate limiting on /api/v1
+
+### What we shipped
+- **Rate limiting**: Redis fixed-window limiter on all `/api/v1` routes (applied
+  before auth), excluding `/health` and `/r/{slug}`.
+  - `internal/ratelimit.RedisLimiter`: bucketed key
+    `ratelimit:{ip}:{epoch/window}` with INCR + EXPIRE in one pipeline — each
+    counter belongs to exactly one window and expires on its own (no reset
+    bookkeeping, no INCR/EXPIRE race).
+  - `middleware.RateLimit`: keys by client IP (X-Forwarded-For aware), sets
+    `X-RateLimit-Limit`/`X-RateLimit-Remaining`, returns 429 + `Retry-After` +
+    standard error envelope on overflow. Fails open on limiter error.
+  - Config `RATE_LIMIT_RPM` (default 60; <=0 disables). Wired as a true nil
+    interface when disabled to avoid the typed-nil trap.
+  - `NewServer` gained a `rateLimiter mw.Limiter` param (nil = off).
+
+### What's working (verified locally)
+- `make test` green (ratelimit 89.5% coverage); `go mod tidy` clean (no new deps).
+- Live run with `RATE_LIMIT_RPM=3`: 200s with remaining 1→0, then 429 with
+  `Retry-After: 25` and the `rate_limited` envelope; `/health` unlimited (5×200).
+
+### What's tested in CI (green on `main`)
+- Backend CI covers the RedisLimiter (counting + per-key independence, real
+  Redis) and the server wiring with a fake limiter (429 + Retry-After on
+  `/api/v1`, `/health` excluded).
+
+### What's NOT built yet / follow-ups
+- Window fixed at 1 minute (only the count is configurable, via RATE_LIMIT_RPM).
+- Per-IP keying: shared NAT/proxy clients share a bucket; X-Forwarded-For is
+  trusted (add a trusted-proxy check before the app is directly internet-facing).
+- Single global limit across all `/api/v1` — no stricter per-endpoint limits yet.
+- Fixed-window allows a brief 2× burst at window boundaries; swappable for
+  sliding-window later behind the same `Limiter` interface.
+- Still outstanding from before: metrics/observability, external reputation
+  provider for safety, per-type payload validation, server-side QR for non-url
+  types, account-wide analytics, analytics time-range windowing.
+
+### Today's commits
+- `0f09cc7` feat(ratelimit): add per-IP rate limiting on /api/v1
