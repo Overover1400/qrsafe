@@ -51,3 +51,54 @@
 - `47717f5` ci: skip backend workflow for doc-only (Markdown) changes
 - `6fcd013` docs: add CI status badges to mobile README
 - `27b088c` ci: skip mobile and web workflows for doc-only (Markdown) changes
+
+## 2026-05-30 — Codes domain: CRUD + public dynamic redirect
+
+### What we shipped
+- **Codes feature** (`internal/codes/`): create/list/get/update/delete static and
+  dynamic QR codes, plus the public `GET /r/{slug}` redirect for dynamic codes.
+  - Protected endpoints (guest or full account): `POST /api/v1/codes`,
+    `GET /api/v1/codes` (cursor-paginated), `GET|PATCH|DELETE /api/v1/codes/{id}`.
+  - Public, unauthenticated: `GET /r/{slug}` → 302 to the current destination.
+  - Types: `url|wifi|vcard|email|text|sms`; payload stored as JSONB (validated
+    only as "is a JSON object"). Only `url` codes may be dynamic.
+- **Migration 0002**: `codes`, `dynamic_codes`, `scan_events` (+ indexes), with a
+  matching down migration.
+- **Slugs**: 8-char base62 via `crypto/rand`, 5× collision-retry inside a
+  transaction; unguessable, not just unique.
+- **Redis redirect cache**: `redirect:{slug}` → `{destination, code_id}`, 1h TTL,
+  invalidated on destination PATCH and on DELETE. Cache-miss falls back to
+  Postgres and repopulates.
+- **Scan recording**: fire-and-forget goroutine after the redirect (500ms ctx),
+  client IP stored as SHA-256 hash.
+- **Config**: `PUBLIC_BASE_URL` (used to build `redirect_url` in responses).
+- Ownership is enforced by scoping every query to `user_id`; cross-user access
+  returns `404` (never `403`) so existence isn't leaked.
+
+### What's working (verified locally)
+- `make migrate-up` applies 0002; `codes`/`dynamic_codes`/`scan_events` exist.
+- `make test` green (codes 67.8%, handlers 60% coverage).
+- Full curl flow: guest → static create 201 → dynamic create 201 (slug +
+  redirect_url) → `/r/slug` 302 → PATCH destination 200 → `/r/slug` 302 to new
+  target (cache invalidated) → list returns both → DELETE 204 → `/r/slug` 404.
+  Scan events confirmed (rows with 64-char SHA-256 `ip_hash`).
+
+### What's tested in CI (green on `main`)
+- Backend CI now also covers the codes repository, service, and handler/redirect
+  request cycles against the live Postgres + Redis service containers (same
+  `TEST_DATABASE_URL || DATABASE_URL` skip strategy; Redis tests use prefixed
+  keys).
+- Tests run serially with `-p 1` (Makefile + CI): packages share the one test
+  database and truncate between tests, so serializing avoids cross-package races.
+- The users repo test now truncates with `CASCADE` (codes now FKs users).
+
+### What's NOT built yet
+- No URL safety check (`/scan/check`) — next brief.
+- No server-side QR image generation (the Flutter client renders locally).
+- No rate limiting; no metrics/observability beyond slog.
+- Payload inner shapes are not validated per type (only "is an object").
+- Redis SETs are best-effort: a cache error degrades to a Postgres read, not a
+  request failure.
+
+### Today's commits
+- `45d94ef` feat(codes): add CRUD endpoints + public dynamic redirect
