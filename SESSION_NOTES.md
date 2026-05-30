@@ -102,3 +102,50 @@
 
 ### Today's commits
 - `45d94ef` feat(codes): add CRUD endpoints + public dynamic redirect
+
+## 2026-05-30 — URL safety check + destination gating
+
+### What we shipped
+- **Safety feature** (`internal/safety/`): a local-only URL classifier and the
+  `POST /api/v1/scan/check` endpoint (JWT-protected) returning a verdict
+  (`safe|suspicious|malicious`) with reason codes.
+  - `HeuristicChecker` (no external API/secrets, deterministic), behind a
+    `Checker` interface so an external provider can be added later.
+  - Verdict rules: dangerous schemes (`javascript:`/`data:`/`file:`/`vbscript:`/
+    `blob:`) and blocklisted hosts → `malicious`; IP-literal host, punycode,
+    embedded credentials, URL shorteners, overlong host → `suspicious`; else
+    `safe`. Worst signal wins.
+  - `Service` fronts the checker with a Redis verdict cache
+    (`safety:{sha256(url)}`, 6h TTL); cache errors fail open.
+  - Handler returns 200 with the verdict (even `malicious` is a result, not an
+    error); 400 only on a missing/oversized url.
+- **Destination gating**: the codes service runs the checker on dynamic-code
+  create and destination PATCH, rejecting `malicious` with `400
+  unsafe_destination`. `suspicious` is allowed through. `codes.NewService` now
+  takes an optional `DestinationChecker` (nil disables gating).
+
+### What's working (verified locally)
+- `make test` green (safety 83.8% coverage).
+- `/scan/check`: 401 unauth; `https://example.com` → safe; `javascript:alert(1)`
+  → malicious (`disallowed_scheme`); `bit.ly/...` → suspicious (`url_shortener`);
+  `cached` flips true on repeat.
+- Gating via the API: dynamic create with `javascript:` → 400 `unsafe_destination`;
+  safe → 201; PATCH to `evil.example` → 400; PATCH to safe host → 200.
+
+### What's tested in CI (green on `main`)
+- Backend CI covers the safety checker (pure table tests), the Redis verdict
+  cache, the `/scan/check` handler cycle (in-memory cache, no infra needed), and
+  codes destination gating via the API.
+
+### What's NOT built yet / follow-ups
+- Gating blocks `malicious` only; `suspicious` destinations are allowed (could be
+  tightened to also block/flag suspicious).
+- `unsafe_destination` errors return a generic message — they don't echo the
+  specific reasons (those are available via `/scan/check`).
+- No external reputation provider yet (Safe Browsing/VirusTotal); blocklist uses
+  reserved `.test`/`.example` placeholder domains.
+- Still outstanding from before: server-side QR rendering, rate limiting,
+  metrics/observability, per-type payload validation.
+
+### Today's commits
+- `43c5a11` feat(safety): add URL safety check endpoint + gate dynamic destinations
