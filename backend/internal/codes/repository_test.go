@@ -138,7 +138,7 @@ func TestRepositoryUserIsolation(t *testing.T) {
 func TestPaginationCursor(t *testing.T) {
 	pool := newTestPool(t)
 	repo := codes.NewRepository(pool)
-	svc := codes.NewService(repo, codes.NewRedisCache(nil), discardLogger())
+	svc := codes.NewService(repo, codes.NewRedisCache(nil), discardLogger(), nil)
 	ctx := context.Background()
 	userID := insertUser(t, pool)
 

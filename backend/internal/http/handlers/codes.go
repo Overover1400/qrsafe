@@ -269,6 +269,8 @@ func (h *CodesHandler) writeServiceError(w http.ResponseWriter, err error) {
 		response.Error(w, http.StatusBadRequest, "validation_error", "a dynamic url code requires payload.url")
 	case errors.Is(err, codes.ErrNotDynamic):
 		response.Error(w, http.StatusBadRequest, "not_dynamic", "destination can only be set on a dynamic code")
+	case errors.Is(err, codes.ErrUnsafeDestination):
+		response.Error(w, http.StatusBadRequest, "unsafe_destination", "destination was flagged as unsafe")
 	case errors.Is(err, codes.ErrInvalidCursor):
 		response.Error(w, http.StatusBadRequest, "validation_error", "invalid pagination cursor")
 	case errors.Is(err, codes.ErrSlugGenerationFailed):

@@ -19,6 +19,7 @@ import (
 	httpserver "github.com/Overover1400/qrsafe/internal/http"
 	"github.com/Overover1400/qrsafe/internal/http/handlers"
 	"github.com/Overover1400/qrsafe/internal/platform"
+	"github.com/Overover1400/qrsafe/internal/safety"
 	"github.com/Overover1400/qrsafe/internal/users"
 	"github.com/joho/godotenv"
 	"github.com/redis/go-redis/v9"
@@ -70,18 +71,21 @@ func run(logger *slog.Logger) error {
 	repo := users.NewRepository(pool)
 	authSvc := auth.NewService(repo, tokens)
 
+	safetySvc := safety.NewService(safety.NewHeuristicChecker(), safety.NewRedisCache(rdb), logger)
+
 	codesRepo := codes.NewRepository(pool)
 	redirectCache := codes.NewRedisCache(rdb)
-	codesSvc := codes.NewService(codesRepo, redirectCache, logger)
+	codesSvc := codes.NewService(codesRepo, redirectCache, logger, safetySvc)
 	redirectSvc := codes.NewRedirectService(codesRepo, redirectCache, logger)
 
 	healthHandler := handlers.NewHealthHandler(pool, redisPinger{c: rdb})
 	authHandler := handlers.NewAuthHandler(authSvc)
 	codesHandler := handlers.NewCodesHandler(codesSvc, cfg.PublicBaseURL)
 	redirectHandler := handlers.NewRedirectHandler(redirectSvc, logger)
+	safetyHandler := handlers.NewSafetyHandler(safetySvc)
 
 	srv := httpserver.NewServer(net.JoinHostPort("", cfg.Port), logger, tokens,
-		healthHandler, authHandler, codesHandler, redirectHandler)
+		healthHandler, authHandler, codesHandler, redirectHandler, safetyHandler)
 
 	// Run the server and wait for either a fatal serve error or a signal.
 	serveErr := make(chan error, 1)

@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Overover1400/qrsafe/internal/safety"
 	"github.com/google/uuid"
 )
 
@@ -27,6 +28,7 @@ var (
 	ErrNotDynamic           = errors.New("code is not dynamic")
 	ErrSlugGenerationFailed = errors.New("could not generate a unique slug")
 	ErrInvalidCursor        = errors.New("invalid pagination cursor")
+	ErrUnsafeDestination    = errors.New("destination failed the safety check")
 )
 
 // repository is the persistence surface the service depends on. *Repository
@@ -41,17 +43,46 @@ type repository interface {
 	Delete(ctx context.Context, userID, id uuid.UUID) error
 }
 
+// DestinationChecker validates a dynamic code's destination URL. A nil checker
+// disables gating (the safety check is then only available via /scan/check).
+type DestinationChecker interface {
+	Check(ctx context.Context, rawURL string) (*safety.Result, error)
+}
+
 // Service holds the codes business logic.
 type Service struct {
 	repo    repository
 	cache   Cache
 	log     *slog.Logger
+	checker DestinationChecker
 	newSlug func() (string, error) // injectable for tests; defaults to GenerateSlug
 }
 
-// NewService constructs a Service.
-func NewService(repo repository, cache Cache, log *slog.Logger) *Service {
-	return &Service{repo: repo, cache: cache, log: log, newSlug: GenerateSlug}
+// NewService constructs a Service. checker may be nil to disable destination
+// gating.
+func NewService(repo repository, cache Cache, log *slog.Logger, checker DestinationChecker) *Service {
+	return &Service{repo: repo, cache: cache, log: log, checker: checker, newSlug: GenerateSlug}
+}
+
+// guardDestination rejects a destination only when it is classified malicious.
+// Suspicious destinations are allowed (the client can surface the warning via
+// /scan/check); a checker error fails open so the safety check never takes the
+// product down.
+func (s *Service) guardDestination(ctx context.Context, rawURL string) error {
+	if s.checker == nil {
+		return nil
+	}
+	res, err := s.checker.Check(ctx, rawURL)
+	if err != nil {
+		s.log.Warn("destination safety check failed; allowing",
+			slog.String("error", err.Error()))
+		return nil
+	}
+	if res.Verdict == safety.VerdictMalicious {
+		s.log.Info("blocked unsafe destination", slog.String("verdict", string(res.Verdict)))
+		return ErrUnsafeDestination
+	}
+	return nil
 }
 
 // CreateInput is the validated input for creating a code.
@@ -89,6 +120,9 @@ func (s *Service) Create(ctx context.Context, in CreateInput) (*Code, error) {
 	dest, ok := extractURL(in.Payload)
 	if !ok {
 		return nil, ErrDynamicURLRequired
+	}
+	if err := s.guardDestination(ctx, dest); err != nil {
+		return nil, err
 	}
 
 	for attempt := 1; attempt <= maxSlugAttempts; attempt++ {
@@ -180,6 +214,9 @@ func (s *Service) Update(ctx context.Context, userID, id uuid.UUID, in UpdateInp
 	if in.Destination != nil {
 		if !c.IsDynamic || c.Dynamic == nil {
 			return nil, ErrNotDynamic
+		}
+		if err := s.guardDestination(ctx, *in.Destination); err != nil {
+			return nil, err
 		}
 		if err := s.repo.UpdateDestination(ctx, c.ID, *in.Destination); err != nil {
 			return nil, fmt.Errorf("updating destination: %w", err)

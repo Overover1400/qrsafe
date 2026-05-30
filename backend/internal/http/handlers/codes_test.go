@@ -20,6 +20,7 @@ import (
 	"github.com/Overover1400/qrsafe/internal/codes"
 	httpserver "github.com/Overover1400/qrsafe/internal/http"
 	"github.com/Overover1400/qrsafe/internal/http/handlers"
+	"github.com/Overover1400/qrsafe/internal/safety"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
@@ -105,13 +106,15 @@ func newCodesEnv(t *testing.T) *codesEnv {
 	tokens := auth.NewTokenManager([]byte("test-signing-secret-0123456789abc"), time.Hour)
 	repo := codes.NewRepository(pool)
 	cache := codes.NewRedisCache(rdb)
-	codesSvc := codes.NewService(repo, cache, discardLogger())
+	safetySvc := safety.NewService(safety.NewHeuristicChecker(), safety.NewRedisCache(rdb), discardLogger())
+	codesSvc := codes.NewService(repo, cache, discardLogger(), safetySvc)
 	redirectSvc := codes.NewRedirectService(repo, cache, discardLogger())
 
 	health := handlers.NewHealthHandler(okPinger{}, okPinger{})
 	codesH := handlers.NewCodesHandler(codesSvc, "http://test.local")
 	redirectH := handlers.NewRedirectHandler(redirectSvc, discardLogger())
-	srv := httpserver.NewServer(":0", discardLogger(), tokens, health, nil, codesH, redirectH)
+	safetyH := handlers.NewSafetyHandler(safetySvc)
+	srv := httpserver.NewServer(":0", discardLogger(), tokens, health, nil, codesH, redirectH, safetyH)
 
 	return &codesEnv{handler: srv.Handler(), tokens: tokens, pool: pool, rdb: rdb, repo: repo}
 }
@@ -286,6 +289,33 @@ func TestCodesPatchDestinationOnStaticRejected(t *testing.T) {
 	w = env.do(t, http.MethodPatch, "/api/v1/codes/"+created.Code.ID, token, `{"destination":"https://x.example"}`)
 	require.Equal(t, http.StatusBadRequest, w.Code)
 	require.Equal(t, "not_dynamic", errorCode(t, w.Body.Bytes()))
+}
+
+func TestCodesCreateDynamicUnsafeDestinationRejected(t *testing.T) {
+	env := newCodesEnv(t)
+	_, token := env.newUser(t)
+	// A javascript: destination is classified malicious → creation blocked.
+	w := env.do(t, http.MethodPost, "/api/v1/codes", token,
+		`{"type":"url","payload":{"url":"javascript:alert(1)"},"is_dynamic":true}`)
+	require.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+	require.Equal(t, "unsafe_destination", errorCode(t, w.Body.Bytes()))
+}
+
+func TestCodesPatchUnsafeDestinationRejected(t *testing.T) {
+	env := newCodesEnv(t)
+	_, token := env.newUser(t)
+	// Create a safe dynamic code first.
+	w := env.do(t, http.MethodPost, "/api/v1/codes", token,
+		`{"type":"url","payload":{"url":"https://example.com"},"is_dynamic":true}`)
+	require.Equal(t, http.StatusCreated, w.Code, w.Body.String())
+	var created codeEnvelopeResp
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &created))
+
+	// Patching to a blocklisted destination is rejected.
+	w = env.do(t, http.MethodPatch, "/api/v1/codes/"+created.Code.ID, token,
+		`{"destination":"https://evil.example/login"}`)
+	require.Equal(t, http.StatusBadRequest, w.Code, w.Body.String())
+	require.Equal(t, "unsafe_destination", errorCode(t, w.Body.Bytes()))
 }
 
 // errorCode extracts error.code from an error envelope body.

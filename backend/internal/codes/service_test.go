@@ -14,7 +14,7 @@ func TestServiceCreateDynamicGeneratesSlug(t *testing.T) {
 	pool := newTestPool(t)
 	rdb := newTestRedis(t)
 	repo := codes.NewRepository(pool)
-	svc := codes.NewService(repo, codes.NewRedisCache(rdb), discardLogger())
+	svc := codes.NewService(repo, codes.NewRedisCache(rdb), discardLogger(), nil)
 	ctx := context.Background()
 	userID := insertUser(t, pool)
 
@@ -33,7 +33,7 @@ func TestServiceCreateDynamicGeneratesSlug(t *testing.T) {
 
 func TestServiceCreateDynamicRejectsNonURL(t *testing.T) {
 	// No DB needed: the type check happens before any persistence.
-	svc := codes.NewService(nil, codes.NewRedisCache(nil), discardLogger())
+	svc := codes.NewService(nil, codes.NewRedisCache(nil), discardLogger(), nil)
 	_, err := svc.Create(context.Background(), codes.CreateInput{
 		UserID:    uuid.New(),
 		Type:      string(codes.TypeText),
@@ -48,7 +48,7 @@ func TestServiceUpdateDestinationInvalidatesCache(t *testing.T) {
 	rdb := newTestRedis(t)
 	repo := codes.NewRepository(pool)
 	cache := codes.NewRedisCache(rdb)
-	svc := codes.NewService(repo, cache, discardLogger())
+	svc := codes.NewService(repo, cache, discardLogger(), nil)
 	redirectSvc := codes.NewRedirectService(repo, cache, discardLogger())
 	ctx := context.Background()
 	userID := insertUser(t, pool)
@@ -90,7 +90,7 @@ func TestServiceUpdateDestinationOnStaticFails(t *testing.T) {
 	pool := newTestPool(t)
 	rdb := newTestRedis(t)
 	repo := codes.NewRepository(pool)
-	svc := codes.NewService(repo, codes.NewRedisCache(rdb), discardLogger())
+	svc := codes.NewService(repo, codes.NewRedisCache(rdb), discardLogger(), nil)
 	ctx := context.Background()
 	userID := insertUser(t, pool)
 
@@ -109,7 +109,7 @@ func TestServiceDeleteCascadesDynamic(t *testing.T) {
 	pool := newTestPool(t)
 	rdb := newTestRedis(t)
 	repo := codes.NewRepository(pool)
-	svc := codes.NewService(repo, codes.NewRedisCache(rdb), discardLogger())
+	svc := codes.NewService(repo, codes.NewRedisCache(rdb), discardLogger(), nil)
 	ctx := context.Background()
 	userID := insertUser(t, pool)
 

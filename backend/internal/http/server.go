@@ -32,6 +32,7 @@ func NewServer(
 	authHandler *handlers.AuthHandler,
 	codesHandler *handlers.CodesHandler,
 	redirectHandler *handlers.RedirectHandler,
+	safetyHandler *handlers.SafetyHandler,
 ) *Server {
 	r := chi.NewRouter()
 	r.Use(mw.Recover(logger))
@@ -63,6 +64,9 @@ func NewServer(
 			r.Get("/codes/{id}", codesHandler.Get)
 			r.Patch("/codes/{id}", codesHandler.Update)
 			r.Delete("/codes/{id}", codesHandler.Delete)
+
+			// URL safety check.
+			r.Post("/scan/check", safetyHandler.Check)
 		})
 	})
 
