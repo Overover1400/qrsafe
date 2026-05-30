@@ -23,7 +23,10 @@ func newQREnv(t *testing.T) (http.Handler, string) {
 	tokens := auth.NewTokenManager([]byte("test-signing-secret-0123456789abc"), time.Hour)
 	health := handlers.NewHealthHandler(okPinger{}, okPinger{})
 	qrH := handlers.NewQRHandler()
-	srv := httpserver.NewServer(":0", discardLogger(), tokens, health, nil, nil, nil, nil, qrH)
+	srv := httpserver.NewServer(":0", discardLogger(), tokens, httpserver.Handlers{
+		Health: health,
+		QR:     qrH,
+	})
 	token, _, err := tokens.Issue(uuid.New(), true, time.Now())
 	require.NoError(t, err)
 	return srv.Handler(), token

@@ -85,8 +85,14 @@ func run(logger *slog.Logger) error {
 	safetyHandler := handlers.NewSafetyHandler(safetySvc)
 	qrHandler := handlers.NewQRHandler()
 
-	srv := httpserver.NewServer(net.JoinHostPort("", cfg.Port), logger, tokens,
-		healthHandler, authHandler, codesHandler, redirectHandler, safetyHandler, qrHandler)
+	srv := httpserver.NewServer(net.JoinHostPort("", cfg.Port), logger, tokens, httpserver.Handlers{
+		Health:   healthHandler,
+		Auth:     authHandler,
+		Codes:    codesHandler,
+		Redirect: redirectHandler,
+		Safety:   safetyHandler,
+		QR:       qrHandler,
+	})
 
 	// Run the server and wait for either a fatal serve error or a signal.
 	serveErr := make(chan error, 1)

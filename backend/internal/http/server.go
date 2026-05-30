@@ -22,37 +22,38 @@ type Server struct {
 	logger     *slog.Logger
 }
 
+// Handlers bundles the route handlers NewServer mounts. Grouping them keeps the
+// constructor signature stable as endpoints are added.
+type Handlers struct {
+	Health   *handlers.HealthHandler
+	Auth     *handlers.AuthHandler
+	Codes    *handlers.CodesHandler
+	Redirect *handlers.RedirectHandler
+	Safety   *handlers.SafetyHandler
+	QR       *handlers.QRHandler
+}
+
 // NewServer builds the router, mounts middleware and routes, and returns a
 // Server ready to Start.
-func NewServer(
-	addr string,
-	logger *slog.Logger,
-	tokens *auth.TokenManager,
-	health *handlers.HealthHandler,
-	authHandler *handlers.AuthHandler,
-	codesHandler *handlers.CodesHandler,
-	redirectHandler *handlers.RedirectHandler,
-	safetyHandler *handlers.SafetyHandler,
-	qrHandler *handlers.QRHandler,
-) *Server {
+func NewServer(addr string, logger *slog.Logger, tokens *auth.TokenManager, h Handlers) *Server {
 	r := chi.NewRouter()
 	r.Use(mw.Recover(logger))
 	r.Use(mw.Logger(logger))
 
-	r.Get("/health", health.Health)
+	r.Get("/health", h.Health.Health)
 
 	// Public, unauthenticated redirect for dynamic QR codes. Mounted at the
 	// root (outside /api/v1) so scanned codes resolve without a token.
-	r.Get("/r/{slug}", redirectHandler.Redirect)
+	r.Get("/r/{slug}", h.Redirect.Redirect)
 
 	r.Route("/api/v1", func(r chi.Router) {
 		r.Route("/auth", func(r chi.Router) {
-			r.Post("/guest", authHandler.Guest)
+			r.Post("/guest", h.Auth.Guest)
 
 			// Protected: requires a valid bearer token.
 			r.Group(func(r chi.Router) {
 				r.Use(mw.Auth(tokens))
-				r.Post("/upgrade", authHandler.Upgrade)
+				r.Post("/upgrade", h.Auth.Upgrade)
 			})
 		})
 
@@ -60,17 +61,17 @@ func NewServer(
 		// their own codes.
 		r.Group(func(r chi.Router) {
 			r.Use(mw.Auth(tokens))
-			r.Post("/codes", codesHandler.Create)
-			r.Get("/codes", codesHandler.List)
-			r.Get("/codes/{id}", codesHandler.Get)
-			r.Patch("/codes/{id}", codesHandler.Update)
-			r.Delete("/codes/{id}", codesHandler.Delete)
+			r.Post("/codes", h.Codes.Create)
+			r.Get("/codes", h.Codes.List)
+			r.Get("/codes/{id}", h.Codes.Get)
+			r.Patch("/codes/{id}", h.Codes.Update)
+			r.Delete("/codes/{id}", h.Codes.Delete)
 
 			// URL safety check.
-			r.Post("/scan/check", safetyHandler.Check)
+			r.Post("/scan/check", h.Safety.Check)
 
 			// QR image generation (stateless).
-			r.Post("/qr", qrHandler.Generate)
+			r.Post("/qr", h.QR.Generate)
 		})
 	})
 

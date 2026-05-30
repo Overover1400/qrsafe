@@ -53,7 +53,10 @@ func newSafetyEnv(t *testing.T) (http.Handler, string) {
 	svc := safety.NewService(safety.NewHeuristicChecker(), newMemCache(), discardLogger())
 	health := handlers.NewHealthHandler(okPinger{}, okPinger{})
 	safetyH := handlers.NewSafetyHandler(svc)
-	srv := httpserver.NewServer(":0", discardLogger(), tokens, health, nil, nil, nil, safetyH, nil)
+	srv := httpserver.NewServer(":0", discardLogger(), tokens, httpserver.Handlers{
+		Health: health,
+		Safety: safetyH,
+	})
 
 	token, _, err := tokens.Issue(uuid.New(), true, time.Now())
 	require.NoError(t, err)
