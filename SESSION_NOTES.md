@@ -149,3 +149,43 @@
 
 ### Today's commits
 - `43c5a11` feat(safety): add URL safety check endpoint + gate dynamic destinations
+
+## 2026-05-30 — Server-side QR image generation
+
+### What we shipped
+- **QR feature** (`internal/qr/`): a stateless `POST /api/v1/qr` (JWT-protected)
+  that renders a PNG QR code for a payload without storing anything.
+  - `Content` maps a code type + payload to the string to encode; **v1 supports
+    only `type: "url"`** (other types → 400 `unsupported_type`). The caller
+    passes the URL to encode — for a dynamic code that is its `/r/{slug}` link.
+  - `PNG` renders via **`skip2/go-qrcode`** (new dependency; pure stdlib, no
+    transitive deps). `?size=` (clamped 64–2048, default 256) and `?ecc=`
+    (low/medium/high/highest, default medium) are configurable.
+  - Handler returns `200 image/png` on success; JSON error envelope otherwise.
+    Rendering is pure/deterministic, so the handler calls the `qr` package
+    directly with no injected service.
+- This **reverses** the earlier "client renders QR locally" decision for
+  server-side generation.
+
+### What's working (verified locally)
+- `make test` green (qr 77.8% coverage); `go mod tidy` produces no diff.
+- Live curl: no auth → 401; `?size=300` → 200 `image/png`, a valid 300×300 PNG
+  (confirmed via `file`); `type:"wifi"` → 400 `unsupported_type`.
+
+### What's tested in CI (green on `main`)
+- Backend CI covers the qr package (content mapping, valid PNG, size scaling,
+  clamping) and the handler cycle (auth, PNG output, size/ecc params, error
+  cases) — no Postgres or Redis needed. The `go mod tidy` check passes with the
+  new dependency.
+
+### What's NOT built yet / follow-ups
+- QR is `url`-only; canonical encoders for wifi/vcard/email/text/sms deferred.
+- Stateless only — no by-id `/codes/{id}/qr` route that looks up and encodes the
+  right value (e.g. a dynamic code's `/r/{slug}`) server-side.
+- `httpserver.NewServer` now takes 9 positional handler args; worth refactoring
+  to a `Handlers` struct.
+- Still outstanding from before: rate limiting, metrics/observability, external
+  reputation provider for safety, per-type payload validation.
+
+### Today's commits
+- `7c40712` feat(qr): add stateless QR image generation endpoint
