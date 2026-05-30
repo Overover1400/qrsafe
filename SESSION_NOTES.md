@@ -201,3 +201,42 @@
 
 ### Today's commits
 - `1152aa8` refactor(http): pass handlers to NewServer via a Handlers struct
+
+## 2026-05-30 — Per-code scan analytics
+
+### What we shipped
+- **Analytics endpoint**: `GET /api/v1/codes/{id}/analytics` (JWT-protected,
+  owner-scoped) — all-time scan stats for one of the user's codes, reading the
+  `scan_events` table populated by the redirect handler.
+  - Returns total scans, unique visitors (distinct non-null `ip_hash`), a per-day
+    UTC time series, and top user agents (capped at 10).
+  - Ownership derived by fetching the code for the user first → 404 (not 403) if
+    not theirs. Static codes have no slug → zeroed result with empty (non-null)
+    series.
+  - `codes` repository gained `ScanCounts`/`ScanDaily`/`ScanTopUserAgents`
+    (queries over `scan_events` by slug); the service assembles `Analytics`.
+
+### What's working (verified locally)
+- `make test` green (codes 69.3%, handlers 65.3% coverage).
+- Live curl: dynamic code + 3 redirects (2 user agents) → `total_scans:3`,
+  `unique_visitors:1` (same localhost IP → one hashed visitor), one daily bucket,
+  ranked user agents. 401 without auth; cross-user and invalid id → 404.
+
+### What's tested in CI (green on `main`)
+- Backend CI covers the analytics repository queries (counts/daily/top UAs), the
+  service (happy path, static zeros, ownership), and the handler cycle (200,
+  auth, ownership 404, static).
+
+### What's NOT built yet / follow-ups
+- All-time only — no `?days=`/`from`-`to` window yet (the
+  `scan_events_slug_scanned_at_idx` index already supports range scans).
+- Unique visitors is approximate (distinct hashed IP, not device-level); NULL
+  IPs aren't counted.
+- No account-wide analytics summary across all of a user's codes.
+- No caching on analytics reads.
+- Still outstanding from before: rate limiting, metrics/observability, external
+  reputation provider for safety, per-type payload validation, server-side QR
+  for non-url types.
+
+### Today's commits
+- `e870e55` feat(analytics): add per-code scan analytics endpoint
