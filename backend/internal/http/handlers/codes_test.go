@@ -114,7 +114,8 @@ func newCodesEnv(t *testing.T) *codesEnv {
 	codesH := handlers.NewCodesHandler(codesSvc, "http://test.local")
 	redirectH := handlers.NewRedirectHandler(redirectSvc, discardLogger())
 	safetyH := handlers.NewSafetyHandler(safetySvc)
-	srv := httpserver.NewServer(":0", discardLogger(), tokens, health, nil, codesH, redirectH, safetyH)
+	qrH := handlers.NewQRHandler()
+	srv := httpserver.NewServer(":0", discardLogger(), tokens, health, nil, codesH, redirectH, safetyH, qrH)
 
 	return &codesEnv{handler: srv.Handler(), tokens: tokens, pool: pool, rdb: rdb, repo: repo}
 }

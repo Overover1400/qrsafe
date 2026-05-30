@@ -83,9 +83,10 @@ func run(logger *slog.Logger) error {
 	codesHandler := handlers.NewCodesHandler(codesSvc, cfg.PublicBaseURL)
 	redirectHandler := handlers.NewRedirectHandler(redirectSvc, logger)
 	safetyHandler := handlers.NewSafetyHandler(safetySvc)
+	qrHandler := handlers.NewQRHandler()
 
 	srv := httpserver.NewServer(net.JoinHostPort("", cfg.Port), logger, tokens,
-		healthHandler, authHandler, codesHandler, redirectHandler, safetyHandler)
+		healthHandler, authHandler, codesHandler, redirectHandler, safetyHandler, qrHandler)
 
 	// Run the server and wait for either a fatal serve error or a signal.
 	serveErr := make(chan error, 1)

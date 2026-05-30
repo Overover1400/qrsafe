@@ -33,6 +33,7 @@ func NewServer(
 	codesHandler *handlers.CodesHandler,
 	redirectHandler *handlers.RedirectHandler,
 	safetyHandler *handlers.SafetyHandler,
+	qrHandler *handlers.QRHandler,
 ) *Server {
 	r := chi.NewRouter()
 	r.Use(mw.Recover(logger))
@@ -67,6 +68,9 @@ func NewServer(
 
 			// URL safety check.
 			r.Post("/scan/check", safetyHandler.Check)
+
+			// QR image generation (stateless).
+			r.Post("/qr", qrHandler.Generate)
 		})
 	})
 
