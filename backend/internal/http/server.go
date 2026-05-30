@@ -35,7 +35,7 @@ type Handlers struct {
 
 // NewServer builds the router, mounts middleware and routes, and returns a
 // Server ready to Start.
-func NewServer(addr string, logger *slog.Logger, tokens *auth.TokenManager, h Handlers) *Server {
+func NewServer(addr string, logger *slog.Logger, tokens *auth.TokenManager, h Handlers, rateLimiter mw.Limiter) *Server {
 	r := chi.NewRouter()
 	r.Use(mw.Recover(logger))
 	r.Use(mw.Logger(logger))
@@ -47,6 +47,12 @@ func NewServer(addr string, logger *slog.Logger, tokens *auth.TokenManager, h Ha
 	r.Get("/r/{slug}", h.Redirect.Redirect)
 
 	r.Route("/api/v1", func(r chi.Router) {
+		// Per-IP rate limiting on the whole API (not /health or /r/{slug}).
+		// Runs before auth so anonymous floods are throttled too.
+		if rateLimiter != nil {
+			r.Use(mw.RateLimit(rateLimiter, logger))
+		}
+
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/guest", h.Auth.Guest)
 

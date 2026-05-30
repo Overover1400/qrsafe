@@ -121,7 +121,7 @@ func newCodesEnv(t *testing.T) *codesEnv {
 		Redirect: redirectH,
 		Safety:   safetyH,
 		QR:       qrH,
-	})
+	}, nil)
 
 	return &codesEnv{handler: srv.Handler(), tokens: tokens, pool: pool, rdb: rdb, repo: repo}
 }

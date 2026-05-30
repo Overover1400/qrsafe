@@ -26,6 +26,10 @@ type Config struct {
 
 	JWTSecret []byte
 	JWTTTL    time.Duration
+
+	// RateLimitRPM is the per-IP request budget per minute for /api/v1. A value
+	// <= 0 disables rate limiting.
+	RateLimitRPM int
 }
 
 // Load reads configuration from the process environment and validates it.
@@ -66,6 +70,12 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("JWT_TTL_HOURS must be positive")
 	}
 	cfg.JWTTTL = time.Duration(ttlHours) * time.Hour
+
+	rpm, err := strconv.Atoi(getEnv("RATE_LIMIT_RPM", "60"))
+	if err != nil {
+		return nil, fmt.Errorf("parsing RATE_LIMIT_RPM: %w", err)
+	}
+	cfg.RateLimitRPM = rpm
 
 	return cfg, nil
 }

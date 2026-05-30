@@ -18,7 +18,9 @@ import (
 	"github.com/Overover1400/qrsafe/internal/config"
 	httpserver "github.com/Overover1400/qrsafe/internal/http"
 	"github.com/Overover1400/qrsafe/internal/http/handlers"
+	mw "github.com/Overover1400/qrsafe/internal/http/middleware"
 	"github.com/Overover1400/qrsafe/internal/platform"
+	"github.com/Overover1400/qrsafe/internal/ratelimit"
 	"github.com/Overover1400/qrsafe/internal/safety"
 	"github.com/Overover1400/qrsafe/internal/users"
 	"github.com/joho/godotenv"
@@ -85,6 +87,16 @@ func run(logger *slog.Logger) error {
 	safetyHandler := handlers.NewSafetyHandler(safetySvc)
 	qrHandler := handlers.NewQRHandler()
 
+	// A nil interface (not a typed-nil pointer) when disabled, so the server's
+	// nil check works correctly.
+	var rateLimiter mw.Limiter
+	if cfg.RateLimitRPM > 0 {
+		rateLimiter = ratelimit.NewRedisLimiter(rdb, cfg.RateLimitRPM, time.Minute)
+		logger.Info("rate limiting enabled", slog.Int("rpm", cfg.RateLimitRPM))
+	} else {
+		logger.Info("rate limiting disabled")
+	}
+
 	srv := httpserver.NewServer(net.JoinHostPort("", cfg.Port), logger, tokens, httpserver.Handlers{
 		Health:   healthHandler,
 		Auth:     authHandler,
@@ -92,7 +104,7 @@ func run(logger *slog.Logger) error {
 		Redirect: redirectHandler,
 		Safety:   safetyHandler,
 		QR:       qrHandler,
-	})
+	}, rateLimiter)
 
 	// Run the server and wait for either a fatal serve error or a signal.
 	serveErr := make(chan error, 1)
