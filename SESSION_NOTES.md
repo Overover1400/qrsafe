@@ -189,3 +189,15 @@
 
 ### Today's commits
 - `7c40712` feat(qr): add stateless QR image generation endpoint
+
+## 2026-05-30 — Refactor: NewServer Handlers struct
+
+- `httpserver.NewServer` now takes a single `Handlers` struct
+  (Health/Auth/Codes/Redirect/Safety/QR) instead of six positional handler
+  params. Call sites pass named fields (self-documenting; test envs omit
+  handlers they don't exercise instead of positional `nil`s).
+- Pure refactor, no behavior change; full `-race` suite + CI green. Resolves the
+  "NewServer takes too many positional args" follow-up noted above.
+
+### Today's commits
+- `1152aa8` refactor(http): pass handlers to NewServer via a Handlers struct
