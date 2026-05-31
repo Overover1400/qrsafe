@@ -280,3 +280,62 @@
 
 ### Today's commits
 - `0f09cc7` feat(ratelimit): add per-IP rate limiting on /api/v1
+
+## 2026-05-31 — Flutter app: scaffold + scan + safety-check loop
+
+### What we shipped
+- **Real Flutter app** (`mobile/`): replaced the starter counter app end-to-end.
+  Guest bootstrap on first launch (silent), peach-themed home with a "Tap to
+  scan" hero + recent-activity list + bottom nav, full-screen `mobile_scanner`
+  QR scanner, `/scan/check` safety call, and a verdict result sheet that gates
+  link opening per verdict.
+  - Stack (as specified): `flutter_riverpod`, `dio`, `go_router`,
+    `flutter_secure_storage`, `mobile_scanner`, `url_launcher`. Feature-first
+    layout: `core/` (config/theme/api/storage/widgets) + `features/{auth,home,
+    scan,settings,splash}` with data/application/presentation layers.
+  - **Auth**: `AuthController` reuses a stored, unexpired guest JWT — expiry
+    decoded locally from the `exp` claim, no server round-trip — or provisions a
+    new guest via `POST /auth/guest`. Token in secure storage.
+  - **Scan**: `ScanController` posts to `/scan/check`; the result sheet renders a
+    gradient header + the `reasons` list + a per-verdict action (SAFE/UNKNOWN
+    open, CAUTION "Open anyway", DANGER long-press override).
+  - **API client**: one `Dio` with auth + debug-logging + error interceptors;
+    failures mapped to a typed `ApiException` hierarchy and unwrapped via
+    `mapDioErrors` so callers see `AuthException`/`NetworkException`/etc.
+  - **Theme**: peach palette behind a `QRSafeColors` ThemeExtension
+    (`context.qrColors`), so it's swappable later.
+
+### Contract reconciliation (brief vs live backend)
+- The brief assumed `verdict ∈ {safe,caution,danger,unknown}` with
+  `sources`/`expires_at`. The live API returns `verdict ∈
+  {safe,suspicious,malicious}` with `{url, verdict, reasons[], cached}` and no
+  top-level `expires_at`. Resolved without backend changes: `Verdict.parse` maps
+  `suspicious→caution`, `malicious→danger`, unrecognized→`unknown`; `reasons`
+  drives the "safety checks" list; token expiry is read from the JWT `exp` claim.
+
+### What's working (verified locally)
+- `flutter pub get` OK; `flutter analyze` → No issues found; `flutter test` →
+  16 passed (token store, auth bootstrap, scan controller happy/401/network,
+  result-sheet verdict variants; mocktail).
+
+### Build note
+- The local APK build could **not** be run in this dev sandbox — no Android SDK
+  is installed (`flutter build apk` → "No Android SDK found"). CI (`mobile.yml`,
+  `subosito/flutter-action`) provisions the SDK and performs the authoritative
+  `flutter build apk --debug
+  --dart-define=API_BASE_URL=https://api.qrsafe.flemby.com`, uploading the APK
+  artifact. Analyze + tests were verified locally and now gate CI.
+
+### CI
+- `mobile.yml`: build step now passes
+  `--dart-define=API_BASE_URL=https://api.qrsafe.flemby.com`; `analyze` and
+  `test` steps no longer `continue-on-error`.
+
+### What's NOT built yet / follow-ups
+- Recent activity is in-memory only (resets on restart) — persistence next.
+- History and Account are placeholders; "Create code" and account upgrade are
+  deferred per the brief. No iOS config yet. No "import QR from photo".
+
+### Today's commits
+- feat(mobile): scaffold app with peach theme, auth bootstrap, scan + safety check
+- docs: log Flutter app scaffold session in SESSION_NOTES
