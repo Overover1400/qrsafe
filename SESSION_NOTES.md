@@ -339,3 +339,49 @@
 ### Today's commits
 - feat(mobile): scaffold app with peach theme, auth bootstrap, scan + safety check
 - docs: log Flutter app scaffold session in SESSION_NOTES
+
+## 2026-05-31 — Flutter: code generator + dashboard (5 types, hybrid rendering)
+
+### What we shipped
+- **Generator** (`mobile/lib/features/generator/`): create static or dynamic
+  codes for URL, WiFi, vCard, Email, Text. Sealed `CodePayload` per type + a
+  pure `PayloadEncoder` (`WIFI:`/`mailto:`/vCard 3.0/text, with escaping;
+  auto-`https://` for URLs). Live preview debounced 200ms, curated color
+  swatches, dynamic toggle (URL-only). Save → `POST /api/v1/codes` → download
+  sheet → detail screen.
+- **Dashboard** (`mobile/lib/features/codes/`): paginated list (pull-to-refresh
+  + infinite scroll), detail screen with label edit, dynamic destination edit,
+  delete-with-confirm, download. Optimistic add/remove/replace shared between
+  the list and detail controllers (detail rolls back + rethrows on error).
+- **Hybrid QR rendering** (`qr_flutter`, client-side): static codes encode the
+  literal payload; dynamic codes encode the backend `dynamic.redirect_url`
+  (`/r/{slug}`). The server `POST /api/v1/qr` is left for the web app/embeds and
+  is **not** called by mobile.
+- **Download/share**: `core/qr/qr_image.dart` renders PNG bytes off-screen via
+  `QrPainter.toImageData`; `download_sheet.dart` saves (`path_provider`) or
+  shares (`share_plus`). SVG/PDF wired as "Coming soon".
+- New deps: `qr_flutter ^4.1.0`, `path_provider ^2.1.0`, `share_plus ^10.0.0`.
+- Routes added: `/create`, `/codes`, `/codes/:id`. Bottom nav: Create →
+  `/create`; the old History tab relabeled "Codes" → `/codes` (icon kept).
+
+### Backend reconciliation (no backend changes)
+- Analytics is **per-code, all-time only** (`GET /codes/{id}/analytics`); there
+  is no account-wide or weekly rollup. So the dashboard stat card shows "—" and
+  the detail screen shows that code's total/unique scan counts.
+- `field name 'dynamic'` is reserved in Dart → the model field is `dynamicInfo`.
+
+### What's working (verified locally)
+- `flutter pub get` OK; `flutter analyze` → No issues found; `flutter test` →
+  **63 passed** (added ~31: payload encoder all-5-types + edge cases, generator
+  controller, codes API pagination/errors, list controller, list tile, detail
+  screen edit/destination/delete).
+- APK build remains CI-only (no Android SDK in the dev sandbox).
+
+### What's NOT built yet / follow-ups
+- Color is a client-side render choice only (not persisted to backend).
+- Real SVG/PDF export deferred (buttons show "Coming soon"); no QR-from-gallery
+  import; no logo-in-QR. Account-wide / weekly analytics need a backend endpoint.
+
+### Today's commits
+- feat(mobile): code generator + dashboard with 5 types, hybrid rendering
+- docs: log code generator + dashboard session in SESSION_NOTES
