@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../core/api/api_exception.dart';
 import '../../../core/theme/app_theme.dart';
@@ -116,10 +115,11 @@ class CodeDetailScreen extends ConsumerWidget {
     if (confirmed != true) return;
     try {
       await ref.read(codeDetailControllerProvider(id).notifier).delete();
+      if (!context.mounted) return;
       // Use Navigator (not context.pop) so this works under both go_router and
       // a plain Navigator (e.g. widget tests).
       final nav = Navigator.of(context);
-      if (context.mounted && nav.canPop()) nav.pop();
+      if (nav.canPop()) nav.pop();
     } on ApiException catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context)
