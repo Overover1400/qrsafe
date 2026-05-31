@@ -1,20 +1,122 @@
-# mobile
+# QRSafe Mobile (Flutter)
 
 [![Build Android APK](https://github.com/Overover1400/qrsafe/actions/workflows/mobile.yml/badge.svg)](https://github.com/Overover1400/qrsafe/actions/workflows/mobile.yml)
 [![Build Web](https://github.com/Overover1400/qrsafe/actions/workflows/web.yml/badge.svg)](https://github.com/Overover1400/qrsafe/actions/workflows/web.yml)
 
-A new Flutter project.
+The Flutter client for QRSafe — scan a QR code, check the destination URL's
+safety against the backend, then decide whether to open it. On first launch the
+app silently bootstraps a guest account; there is no sign-up screen.
 
-## Getting Started
+## Running locally
 
-This project is a starting point for a Flutter application.
+```bash
+cd mobile
+flutter pub get
 
-A few resources to get you started if this is your first Flutter project:
+# Against a backend running on your machine (Android emulator → host localhost):
+flutter run
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+# Against the production API:
+flutter run --dart-define=API_BASE_URL=https://api.qrsafe.flemby.com
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+To build the debug APK exactly as CI does:
+
+```bash
+flutter build apk --debug --dart-define=API_BASE_URL=https://api.qrsafe.flemby.com
+# → build/app/outputs/flutter-apk/app-debug.apk
+```
+
+Checks before pushing:
+
+```bash
+flutter analyze   # must be clean
+flutter test      # must be green
+```
+
+## How the API URL is configured
+
+The base URL is a compile-time constant read from `--dart-define`, defined in
+[`lib/core/config/env.dart`](lib/core/config/env.dart):
+
+```dart
+static const apiBaseUrl = String.fromEnvironment(
+  'API_BASE_URL',
+  defaultValue: 'http://10.0.2.2:8080', // Android emulator → host localhost
+);
+```
+
+- **Local dev**: omit the flag and the default targets the emulator's
+  host-loopback address (`10.0.2.2`), i.e. a backend on your machine.
+- **CI / release**: `.github/workflows/mobile.yml` passes
+  `--dart-define=API_BASE_URL=https://api.qrsafe.flemby.com`, so the produced
+  APK is hard-wired to production.
+
+The current value is visible at runtime on the Settings screen.
+
+## Architecture & conventions
+
+- **State**: `flutter_riverpod`. All async flows go through `AsyncValue` /
+  `AsyncNotifier`; no raw `FutureBuilder`s in widgets. Every provider has a
+  comment saying what it provides and who consumes it.
+- **HTTP**: a single `Dio` instance ([`core/api/api_client.dart`](lib/core/api/api_client.dart))
+  with an auth interceptor (attaches the bearer token), a debug-only logging
+  interceptor, and an error interceptor that maps failures to typed
+  `ApiException`s (`AuthException` / `ClientException` / `ServerException` /
+  `NetworkException`). Data-layer calls wrap requests in `mapDioErrors` to
+  surface those typed errors.
+- **Auth**: the guest JWT lives in `flutter_secure_storage`. On startup
+  `AuthController` reuses a stored, unexpired token (expiry read locally from the
+  JWT `exp` claim — no server round-trip) or provisions a fresh guest.
+- **Routing**: `go_router`. `/` is a splash that gates the app on the auth
+  bootstrap, then hands off to `/home`. Routes: `/home`, `/scan`, `/settings`.
+- **Theme**: the peach palette lives in `core/theme/`. Widgets read colors via
+  `context.qrColors` (a `ThemeExtension`, `QRSafeColors`) rather than touching
+  raw constants, so the theme stays swappable. User-facing strings are inline
+  for now (intl arrives with a second language).
+- **Errors**: surface via peach `SnackBar`s, not dialogs.
+- **Widget size**: keep files under ~250 lines; extract sub-widgets into the
+  feature's `widgets/` folder.
+
+### Backend contract note
+
+`POST /api/v1/scan/check` returns one of `safe | suspicious | malicious`. The UI
+uses a four-state vocabulary, mapped in `Verdict.parse`
+([`features/scan/data/scan_models.dart`](lib/features/scan/data/scan_models.dart)):
+`suspicious → caution`, `malicious → danger`, anything unrecognized → `unknown`.
+
+## Folder structure (feature-first)
+
+```
+lib/
+├── main.dart                  # entry → runApp(ProviderScope(QRSafeApp()))
+├── app.dart                   # MaterialApp.router + theme
+├── core/                      # cross-feature infrastructure
+│   ├── config/                # Env (dart-define values)
+│   ├── theme/                 # palette + ThemeData + QRSafeColors extension
+│   ├── api/                   # Dio client, interceptors, providers, exceptions
+│   ├── storage/               # SecureTokenStore
+│   └── widgets/               # shared widgets (PrimaryButton, VerdictPill, …)
+├── features/
+│   ├── auth/      {data, application}
+│   ├── home/      {presentation/widgets}
+│   ├── scan/      {data, application, presentation/widgets}
+│   ├── settings/  {presentation}
+│   └── splash/    {presentation}
+└── routing/                   # go_router config
+test/                          # mirrors lib/ structure
+```
+
+## Adding a new feature module
+
+1. Create `lib/features/<name>/` with the layers you need:
+   - `data/` — models (plain Dart, `fromJson`/`toJson`) and API clients that
+     take a `Dio` and wrap calls in `mapDioErrors`.
+   - `application/` — Riverpod controllers (`AsyncNotifier`/`Notifier`) plus the
+     providers that expose them. Comment each provider.
+   - `presentation/` — screens, with sub-widgets under `presentation/widgets/`.
+2. Read colors via `context.qrColors`; reuse `PrimaryButton` / `VerdictPill`.
+3. Add routes in [`routing/app_router.dart`](lib/routing/app_router.dart).
+4. Mirror the module under `test/` and cover controllers + key widgets with
+   `mocktail` (see existing tests for the `ProviderContainer` + mocked-`Dio`
+   pattern).

@@ -47,14 +47,14 @@ jobs:
 
       - name: Analyze
         run: flutter analyze
-        continue-on-error: true   # remove once codebase is clean
 
       - name: Run tests
         run: flutter test
-        continue-on-error: true   # remove once you have tests
 
       - name: Build debug APK
-        run: flutter build apk --debug
+        # Bake the production API URL into the CI artifact. Local dev uses the
+        # emulator-localhost default in lib/core/config/env.dart.
+        run: flutter build apk --debug --dart-define=API_BASE_URL=https://api.qrsafe.flemby.com
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
