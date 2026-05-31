@@ -78,12 +78,12 @@ class _BottomNav extends StatelessWidget {
       onTap: (index) {
         switch (index) {
           case 1:
-            context.push('/scan');
+            context.push('/create');
           case 2:
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('History is coming soon.')),
-            );
+            context.push('/scan');
           case 3:
+            context.push('/codes');
+          case 4:
             context.push('/settings');
           case 0:
           default:
@@ -96,12 +96,17 @@ class _BottomNav extends StatelessWidget {
           label: 'Home',
         ),
         BottomNavigationBarItem(
+          icon: Icon(Icons.add_circle_outline_rounded),
+          label: 'Create',
+        ),
+        BottomNavigationBarItem(
           icon: Icon(Icons.qr_code_scanner_rounded),
           label: 'Scan',
         ),
+        // History icon kept, relabeled to "Codes" → the dashboard (/codes).
         BottomNavigationBarItem(
           icon: Icon(Icons.history_rounded),
-          label: 'History',
+          label: 'Codes',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.person_rounded),

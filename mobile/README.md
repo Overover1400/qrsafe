@@ -120,3 +120,67 @@ test/                          # mirrors lib/ structure
 4. Mirror the module under `test/` and cover controllers + key widgets with
    `mocktail` (see existing tests for the `ProviderContainer` + mocked-`Dio`
    pattern).
+
+## Code generator + dashboard
+
+Two feature modules cover creating and managing QR codes.
+
+### `features/generator/` — create flow
+
+Pick a type, fill a form, watch the QR update live (debounced 200ms), then
+**Save & Download**. On save it `POST`s to `/api/v1/codes`, shows a download
+sheet, and routes to the new code's detail screen.
+
+- `data/code_payload.dart` — a sealed `CodePayload` with one variant per type
+  (`UrlPayload`, `WifiPayload`, `VCardPayload`, `EmailPayload`, `TextPayload`),
+  each with `toJson()` (the backend `payload` object) and an `isValid` gate.
+- `data/payload_encoder.dart` — the canonical client-side encoder: turns a
+  payload into the exact string a **static** QR encodes (URL, `WIFI:…`, vCard,
+  `mailto:…`, text), with WiFi/vCard escaping.
+- `application/generator_controller.dart` — form state: selected type, a
+  *separate* payload per type (switching tabs preserves each form), dynamic
+  flag, foreground color, label.
+
+### `features/codes/` — dashboard
+
+- `data/codes_api.dart` + `data/code_models.dart` — wrap the `/codes` CRUD +
+  per-code analytics; `Code.qrContent` returns the redirect URL for dynamic
+  codes and the literal encoded payload for static ones.
+- `application/codes_list_controller.dart` — paginated `AsyncNotifier` with
+  `refresh`/`loadMore` and optimistic `add`/`remove`/`replace`.
+- `application/code_detail_controller.dart` — family provider (by id) with
+  optimistic `updateLabel`/`updateDestination`/`delete` (rolls back on error).
+
+### Hybrid QR rendering
+
+- **Static** codes render entirely client-side (`qr_flutter`) from the literal
+  payload — instant, offline, image never leaves the device.
+- **Dynamic** codes (URL only) encode the backend-assigned
+  `https://api.qrsafe.flemby.com/r/{slug}` returned in `dynamic.redirect_url`.
+- The server `POST /api/v1/qr` endpoint stays available for the web app/embeds
+  but the mobile app never calls it.
+
+### Download / share
+
+`core/qr/qr_image.dart` renders the QR to PNG bytes off-screen
+(`QrPainter.toImageData`); `download_sheet.dart` saves via `path_provider` or
+shares via `share_plus`. SVG/PDF are wired but show "Coming soon".
+
+### Dashboard analytics note
+
+The backend exposes only **per-code, all-time** analytics
+(`GET /api/v1/codes/{id}/analytics`) — there is no account-wide or weekly
+rollup — so the dashboard stat card shows "—" and the detail screen shows that
+code's total/unique scan counts.
+
+### Adding a new code type
+
+1. Add a value to `CodeType` in `features/generator/data/code_payload.dart`
+   (its `wire` must match a backend `type`) and a new `CodePayload` variant
+   (fields, `toJson`, `isValid`, `fromJson`/`empty` cases).
+2. Add an encoding branch in `features/generator/data/payload_encoder.dart`.
+3. Add a form widget under `generator/presentation/widgets/` and a case in
+   `payload_form.dart`.
+4. Add an icon/label in `widgets/code_type_visuals.dart` — the type chip row
+   picks it up automatically.
+5. Extend `payload_encoder_test.dart` with round-trip + edge-case coverage.

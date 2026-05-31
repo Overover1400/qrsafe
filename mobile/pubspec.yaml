@@ -25,6 +25,12 @@ dependencies:
   go_router: ^14.0.0
   # SVG rendering (icons, if needed)
   flutter_svg: ^2.0.0
+  # Client-side QR rendering (static codes render offline; dynamic encode redirect_url)
+  qr_flutter: ^4.1.0
+  # Save downloaded QR PNGs to device storage
+  path_provider: ^2.1.0
+  # Share the rendered QR image to other apps
+  share_plus: ^10.0.0
 
 dev_dependencies:
   flutter_test:

@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../features/auth/application/auth_controller.dart';
+import '../features/codes/presentation/code_detail_screen.dart';
+import '../features/codes/presentation/codes_list_screen.dart';
+import '../features/generator/presentation/generator_screen.dart';
 import '../features/home/presentation/home_screen.dart';
 import '../features/scan/presentation/scanner_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
@@ -38,6 +41,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/home', builder: (_, _) => const HomeScreen()),
       GoRoute(path: '/scan', builder: (_, _) => const ScannerScreen()),
       GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen()),
+      GoRoute(path: '/create', builder: (_, _) => const GeneratorScreen()),
+      GoRoute(path: '/codes', builder: (_, _) => const CodesListScreen()),
+      GoRoute(
+        path: '/codes/:id',
+        builder: (_, state) =>
+            CodeDetailScreen(id: state.pathParameters['id']!),
+      ),
     ],
   );
 });
