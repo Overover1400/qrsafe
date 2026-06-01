@@ -26,7 +26,7 @@ func newQREnv(t *testing.T) (http.Handler, string) {
 	srv := httpserver.NewServer(":0", discardLogger(), tokens, httpserver.Handlers{
 		Health: health,
 		QR:     qrH,
-	}, nil)
+	}, nil, nil)
 	token, _, err := tokens.Issue(uuid.New(), true, time.Now())
 	require.NoError(t, err)
 	return srv.Handler(), token

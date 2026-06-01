@@ -104,7 +104,7 @@ func run(logger *slog.Logger) error {
 		Redirect: redirectHandler,
 		Safety:   safetyHandler,
 		QR:       qrHandler,
-	}, rateLimiter)
+	}, rateLimiter, cfg.CORSAllowedOrigins)
 
 	// Run the server and wait for either a fatal serve error or a signal.
 	serveErr := make(chan error, 1)

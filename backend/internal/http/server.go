@@ -14,6 +14,7 @@ import (
 	"github.com/Overover1400/qrsafe/internal/http/handlers"
 	mw "github.com/Overover1400/qrsafe/internal/http/middleware"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 )
 
 // Server owns the configured http.Server and its router.
@@ -35,10 +36,22 @@ type Handlers struct {
 
 // NewServer builds the router, mounts middleware and routes, and returns a
 // Server ready to Start.
-func NewServer(addr string, logger *slog.Logger, tokens *auth.TokenManager, h Handlers, rateLimiter mw.Limiter) *Server {
+func NewServer(addr string, logger *slog.Logger, tokens *auth.TokenManager, h Handlers, rateLimiter mw.Limiter, corsAllowedOrigins []string) *Server {
 	r := chi.NewRouter()
 	r.Use(mw.Recover(logger))
 	r.Use(mw.Logger(logger))
+
+	// CORS at the root, before any route registration and before auth, so every
+	// route (/health, /r/{slug}, and all of /api/v1) is covered and browser
+	// preflight (OPTIONS) is answered before the auth middleware can reject it.
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   corsAllowedOrigins,
+		AllowedMethods:   []string{"GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Authorization", "Content-Type", "Accept", "X-Requested-With"},
+		ExposedHeaders:   []string{"X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset", "Retry-After"},
+		AllowCredentials: false, // we authenticate with Authorization headers, not cookies
+		MaxAge:           86400, // cache preflight for 24h
+	}))
 
 	r.Get("/health", h.Health.Health)
 

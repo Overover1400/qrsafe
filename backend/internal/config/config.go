@@ -7,8 +7,13 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
+
+// defaultCORSAllowedOrigins is used when CORS_ALLOWED_ORIGINS is unset/empty:
+// the production web app plus common local dev origins.
+const defaultCORSAllowedOrigins = "https://app.qrsafe.flemby.com,http://localhost:3000,http://localhost:8000"
 
 // Config holds all runtime configuration. Fields are validated in Load; an
 // invalid configuration is a fatal startup error, never a runtime surprise.
@@ -30,6 +35,10 @@ type Config struct {
 	// RateLimitRPM is the per-IP request budget per minute for /api/v1. A value
 	// <= 0 disables rate limiting.
 	RateLimitRPM int
+
+	// CORSAllowedOrigins is the list of origins permitted to call the API from a
+	// browser. Parsed from CORS_ALLOWED_ORIGINS (comma-separated).
+	CORSAllowedOrigins []string
 }
 
 // Load reads configuration from the process environment and validates it.
@@ -77,7 +86,22 @@ func Load() (*Config, error) {
 	}
 	cfg.RateLimitRPM = rpm
 
+	cfg.CORSAllowedOrigins = parseCSV(getEnv("CORS_ALLOWED_ORIGINS", defaultCORSAllowedOrigins))
+
 	return cfg, nil
+}
+
+// parseCSV splits a comma-separated list, trimming whitespace per item and
+// dropping empties.
+func parseCSV(s string) []string {
+	parts := strings.Split(s, ",")
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		if t := strings.TrimSpace(p); t != "" {
+			out = append(out, t)
+		}
+	}
+	return out
 }
 
 func getEnv(key, fallback string) string {

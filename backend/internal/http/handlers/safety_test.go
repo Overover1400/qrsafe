@@ -56,7 +56,7 @@ func newSafetyEnv(t *testing.T) (http.Handler, string) {
 	srv := httpserver.NewServer(":0", discardLogger(), tokens, httpserver.Handlers{
 		Health: health,
 		Safety: safetyH,
-	}, nil)
+	}, nil, nil)
 
 	token, _, err := tokens.Issue(uuid.New(), true, time.Now())
 	require.NoError(t, err)

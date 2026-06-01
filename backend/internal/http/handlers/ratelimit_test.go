@@ -47,7 +47,7 @@ func newLimitedEnv(t *testing.T, limit int) (http.Handler, string) {
 	srv := httpserver.NewServer(":0", discardLogger(), tokens, httpserver.Handlers{
 		Health: health,
 		Safety: safetyH,
-	}, &fakeLimiter{limit: limit, n: map[string]int{}})
+	}, &fakeLimiter{limit: limit, n: map[string]int{}}, nil)
 	token, _, err := tokens.Issue(uuid.New(), true, time.Now())
 	require.NoError(t, err)
 	return srv.Handler(), token

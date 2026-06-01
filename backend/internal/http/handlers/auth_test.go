@@ -110,7 +110,7 @@ func newTestEnv(t *testing.T) *testEnv {
 	srv := httpserver.NewServer(":0", discardLogger(), tokens, httpserver.Handlers{
 		Health: health,
 		Auth:   authHandler,
-	}, nil)
+	}, nil, nil)
 
 	return &testEnv{handler: srv.Handler(), tokens: tokens}
 }
