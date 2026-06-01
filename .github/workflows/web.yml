@@ -65,13 +65,19 @@ jobs:
 
       - name: Add server to known_hosts
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
-          chmod 600 ~/.ssh/known_hosts
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
+          # Pin the server's host key from the secret, and also scan it live as a
+          # fallback so the file is never empty. Both write to the same path that
+          # the rsync ssh option points at below.
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}" > "$HOME/.ssh/known_hosts"
+          ssh-keyscan -t ed25519 193.181.211.239 >> "$HOME/.ssh/known_hosts" 2>/dev/null || true
+          chmod 600 "$HOME/.ssh/known_hosts"
+          echo "known_hosts contents:"; cat "$HOME/.ssh/known_hosts"
 
       - name: Install deploy SSH key
         run: |
-          install -m 600 /dev/stdin ~/.ssh/deploy_key <<< "${{ secrets.DEPLOY_SSH_KEY }}"
+          install -m 600 /dev/stdin "$HOME/.ssh/deploy_key" <<< "${{ secrets.DEPLOY_SSH_KEY }}"
 
       - name: Rsync build to server
         # Trailing slash on web/ uploads the directory contents (not the dir
@@ -79,7 +85,13 @@ jobs:
         # don't linger. The server-side key is locked to
         # `rrsync -wo /var/www/qrsafe-web`, so the path after the colon is
         # relative to that web root.
+        #
+        # Use $HOME (shell-expanded here, before rsync runs) rather than ~ inside
+        # the quoted ssh option, and pass UserKnownHostsFile +
+        # StrictHostKeyChecking=accept-new together so there's no ambiguity about
+        # which known_hosts ssh consults — this fixes "Host key verification
+        # failed".
         run: |
           rsync -rlzv --delete \
-            -e "ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o UserKnownHostsFile=~/.ssh/known_hosts" \
+            -e "ssh -i $HOME/.ssh/deploy_key -o IdentitiesOnly=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=accept-new" \
             web/ deploy@193.181.211.239:
