@@ -37,7 +37,10 @@ jobs:
         run: flutter pub get
 
       - name: Build web
-        run: flutter build web --release
+        # Bake the production API URL in, same as the APK build. Without this the
+        # web app falls back to the emulator-localhost default and can't reach
+        # the API.
+        run: flutter build web --release --dart-define=API_BASE_URL=https://api.qrsafe.flemby.com
 
       - name: Upload web build
         uses: actions/upload-artifact@v4
@@ -45,3 +48,38 @@ jobs:
           name: qrsafe-web
           path: mobile/build/web
           retention-days: 30
+
+  deploy-web:
+    name: Deploy to app.qrsafe.flemby.com
+    needs: build-web
+    runs-on: ubuntu-latest
+    # Only deploy real pushes to main — never PRs or other branches.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Download web build
+        uses: actions/download-artifact@v4
+        with:
+          name: qrsafe-web
+          path: web
+
+      - name: Add server to known_hosts
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Install deploy SSH key
+        run: |
+          install -m 600 /dev/stdin ~/.ssh/deploy_key <<< "${{ secrets.DEPLOY_SSH_KEY }}"
+
+      - name: Rsync build to server
+        # Trailing slash on web/ uploads the directory contents (not the dir
+        # itself). --delete removes files no longer in the build so stale assets
+        # don't linger. The server-side key is locked to
+        # `rrsync -wo /var/www/qrsafe-web`, so the path after the colon is
+        # relative to that web root.
+        run: |
+          rsync -rlzv --delete \
+            -e "ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o UserKnownHostsFile=~/.ssh/known_hosts" \
+            web/ deploy@193.181.211.239:
