@@ -49,6 +49,7 @@ jobs:
           path: mobile/build/web
           retention-days: 30
 
+  # Re-trigger: deploy key rotated 2026-06-01.
   deploy-web:
     name: Deploy to app.qrsafe.flemby.com
     needs: build-web
