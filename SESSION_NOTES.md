@@ -1,5 +1,40 @@
 # Session Notes
 
+## 2026-06-01 — Deploy Flutter web to app.qrsafe.flemby.com
+
+### What we shipped
+- **Live site**: `https://app.qrsafe.flemby.com` now serves the Flutter web app
+  (TLS via Caddy auto-HTTPS). A placeholder `index.html` is in place until the
+  first CI deploy lands the real bundle.
+- **Caddy**: added an `app.qrsafe.flemby.com` block (`/etc/caddy/Caddyfile`)
+  serving `/var/www/qrsafe-web` with `try_files {path} /index.html` — SPA
+  fallback so go_router path-based routes resolve. Backup saved as
+  `Caddyfile.bak.<ts>`. Validated + reloaded.
+- **Deploy user**: system user `deploy` (no sudo). Its `authorized_keys` is
+  locked to `command="/usr/bin/rrsync -wo /var/www/qrsafe-web"` + no-pty/
+  no-forwarding — the key can ONLY rsync-upload into the web root, no shell
+  (verified: arbitrary command refused; upload succeeds).
+- **CI** (`.github/workflows/web.yml`): build now bakes the prod API URL
+  (`--dart-define=API_BASE_URL=https://api.qrsafe.flemby.com`) — previously the
+  web build had no API URL and would hit the emulator-localhost default. Added a
+  `deploy-web` job (push-to-main only) that downloads the artifact and rsyncs
+  (`-rlzv --delete`) to `deploy@193.181.211.239:` (path is the rrsync-locked web
+  root).
+
+### Action required (human — can't be done from the server)
+- Add two repo secrets in GitHub (Settings → Secrets and variables → Actions):
+  - `DEPLOY_SSH_KEY` — the ed25519 private key (delivered in chat).
+  - `DEPLOY_SSH_KNOWN_HOSTS` — `193.181.211.239 ssh-ed25519 AAAA…CzxB`.
+  Until both exist, the `deploy-web` job fails at the rsync step (build still ok).
+
+### Verified
+- `https://app.qrsafe.flemby.com/` → 200; deep path `/codes/<id>` → 200 (SPA
+  fallback); `http://` → 308 to https. Restricted-key rsync upload works;
+  shell access via the key is refused. `caddy validate` clean.
+
+### Commits
+- `0a11149` ci(web): deploy Flutter web to app.qrsafe.flemby.com on push to main
+
 ## 2026-05-29 — Backend scaffold + CI
 
 ### What we shipped
