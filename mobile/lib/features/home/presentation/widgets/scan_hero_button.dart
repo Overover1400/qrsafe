@@ -31,6 +31,10 @@ class ScanHeroButton extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 24),
             child: Column(
+              // Center each child horizontally within the full card width so
+              // the icon and text aren't left-offset.
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
                   padding: const EdgeInsets.all(18),
@@ -47,6 +51,7 @@ class ScanHeroButton extends StatelessWidget {
                 const SizedBox(height: 18),
                 const Text(
                   'Tap to scan',
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 22,
@@ -56,6 +61,7 @@ class ScanHeroButton extends StatelessWidget {
                 const SizedBox(height: 6),
                 Text(
                   'Check a QR code before you open it',
+                  textAlign: TextAlign.center,
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.9),
                     fontSize: 14,

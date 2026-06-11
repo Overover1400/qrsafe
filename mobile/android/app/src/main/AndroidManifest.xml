@@ -3,6 +3,10 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <!-- Scan QR codes with the device camera. -->
     <uses-permission android:name="android.permission.CAMERA"/>
+    <!-- Pre-scoped-storage (Android <=10) needs this to write downloaded PNGs.
+         On 11+ we use app-private storage + the share sheet, so no runtime
+         permission is required. -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29"/>
 
     <application
         android:label="QRSafe"

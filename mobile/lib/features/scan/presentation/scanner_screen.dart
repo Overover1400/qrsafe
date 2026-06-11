@@ -10,6 +10,18 @@ import '../application/scan_controller.dart';
 import '../data/scan_models.dart';
 import 'widgets/scan_result_sheet.dart';
 
+/// Builds the scanner's controller, configured to detect QR codes specifically.
+///
+/// Explicit `formats` (QR only) + `DetectionSpeed.normal` make ML Kit reliably
+/// surface QR codes; the default empty-format controller can be flaky. Exposed
+/// as a top-level function so a test can assert the configuration without a
+/// camera.
+MobileScannerController buildScannerController() => MobileScannerController(
+  formats: const [BarcodeFormat.qrCode],
+  detectionSpeed: DetectionSpeed.normal,
+  detectionTimeoutMs: 1000,
+);
+
 /// Full-screen camera QR scanner. On detecting a code it pauses scanning, runs
 /// the safety check, shows [ScanResultSheet], then records the scan and resumes.
 class ScannerScreen extends ConsumerStatefulWidget {
@@ -20,7 +32,7 @@ class ScannerScreen extends ConsumerStatefulWidget {
 }
 
 class _ScannerScreenState extends ConsumerState<ScannerScreen> {
-  final MobileScannerController _controller = MobileScannerController();
+  final MobileScannerController _controller = buildScannerController();
 
   /// Guards against the camera firing multiple detections while a result is
   /// already being handled.
@@ -35,6 +47,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
   Future<void> _onDetect(BarcodeCapture capture) async {
     if (_handling) return;
     final raw = capture.barcodes.isEmpty ? null : capture.barcodes.first.rawValue;
+    debugPrint('DETECTED: $raw');
     if (raw == null || raw.isEmpty) return;
 
     _handling = true;
@@ -61,8 +74,12 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
       );
     }
     ref.read(scanControllerProvider.notifier).reset();
-    if (mounted) {
-      await _controller.start();
+
+    // Resume scanning for the next code. Always clear the guard in finally so a
+    // failed start() can never permanently wedge detection.
+    try {
+      if (mounted) await _controller.start();
+    } finally {
       _handling = false;
     }
   }

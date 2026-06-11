@@ -23,6 +23,7 @@ class DownloadSheet extends StatelessWidget {
 
   Future<void> _download(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
     final bytes = await renderQrPng(data, color: color);
     if (bytes == null) {
       messenger.showSnackBar(
@@ -31,16 +32,12 @@ class DownloadSheet extends StatelessWidget {
       return;
     }
     try {
+      // Save a copy to app storage, then open the share sheet so the user can
+      // route the PNG to Files / Photos / another app. App-private storage
+      // isn't visible on its own, so sharing is how the image leaves the app.
       await exporter.saveToDownloads(bytes, fileName);
-      messenger.showSnackBar(
-        SnackBar(
-          content: const Text('Saved to Downloads'),
-          action: SnackBarAction(
-            label: 'Share',
-            onPressed: () => exporter.share(bytes, fileName),
-          ),
-        ),
-      );
+      if (navigator.canPop()) navigator.pop(); // dismiss the sheet first
+      await exporter.share(bytes, fileName);
     } catch (_) {
       messenger.showSnackBar(
         const SnackBar(content: Text("Couldn't save the image.")),
