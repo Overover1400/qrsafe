@@ -40,3 +40,8 @@ go*.linux-amd64.tar.gz
 
 # Logs
 *.log
+mobile/android/*.p12
+mobile/android/*.jks
+*.p12
+*.jks
+backend/.env.*

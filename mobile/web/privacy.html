@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QRSafe — Privacy Policy</title>
+<style>
+  :root {
+    --canvas: #F1FAF8;
+    --card: #FFFFFF;
+    --accent: #0E7C8A;
+    --ink: #0F3B3F;
+    --ink-mid: #466B6E;
+    --line: #D6EBE7;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 32px 16px 64px;
+    background: var(--canvas);
+    color: var(--ink);
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  main { max-width: 760px; margin: 0 auto; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 32px 28px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+  .mark {
+    width: 44px; height: 44px; border-radius: 12px; flex: none;
+    background: linear-gradient(135deg, #7FE3D0, #14A89C 55%, #0E7C8A);
+  }
+  .brand h1 { margin: 0; font-size: 22px; letter-spacing: -0.01em; }
+  .brand p { margin: 2px 0 0; color: var(--ink-mid); font-size: 13px; }
+  h2 { font-size: 17px; margin: 32px 0 8px; color: var(--accent); }
+  h2:first-of-type { margin-top: 8px; }
+  ul { padding-left: 20px; }
+  li { margin: 6px 0; }
+  .muted { color: var(--ink-mid); font-size: 14px; }
+  a { color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 15px; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--accent); font-weight: 600; }
+  footer { margin-top: 24px; text-align: center; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --canvas: #07211F; --card: #0D2E2E; --ink: #E6F5F2;
+      --ink-mid: #9CC3BF; --line: #1C4A48; --accent: #5FD6C8;
+    }
+  }
+  :root[data-theme="dark"] {
+    --canvas: #07211F; --card: #0D2E2E; --ink: #E6F5F2;
+    --ink-mid: #9CC3BF; --line: #1C4A48; --accent: #5FD6C8;
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="card">
+    <div class="brand">
+      <div class="mark" aria-hidden="true"></div>
+      <div>
+        <h1>QRSafe — Privacy Policy</h1>
+        <p>Last updated: 26 November 2026</p>
+      </div>
+    </div>
+
+    <p>QRSafe is a QR code scanner and generator made by Semicolon. This page explains what the
+      app collects, why, and how to have it deleted. We keep it short on purpose.</p>
+
+    <h2>Who we are</h2>
+    <p>Semicolon, Vancouver, British Columbia, Canada. Contact:
+      <a href="mailto:info@semicolon.live">info@semicolon.live</a>.</p>
+
+    <h2>What stays on your phone</h2>
+    <ul>
+      <li><strong>Camera.</strong> The scanner and the document scanner use the camera to read a
+        code or photograph a page. The video is processed on the device. We never receive it, and
+        no photo or video is uploaded to us.</li>
+      <li><strong>Documents you scan.</strong> The images and the PDF are written to your own
+        storage. They go nowhere else unless you share them yourself.</li>
+      <li><strong>Codes you only scan.</strong> Reading a QR code made by somebody else sends
+        nothing to our server.</li>
+    </ul>
+
+    <h2>What we store on our server</h2>
+    <table>
+      <tr><th>Data</th><th>When</th><th>Why</th></tr>
+      <tr>
+        <td>An anonymous account id</td>
+        <td>On first launch</td>
+        <td>So the codes you make are yours and come back when you reopen the app</td>
+      </tr>
+      <tr>
+        <td>Your email address</td>
+        <td>Only if you choose &ldquo;Continue with Google&rdquo;</td>
+        <td>To recognise you on another phone and keep your codes</td>
+      </tr>
+      <tr>
+        <td>The codes you create &mdash; the type, what you typed into it (link, text, Wi-Fi name
+          and password, contact details, email address) and the label you gave it</td>
+        <td>When you save a code</td>
+        <td>To list your codes again and to re-draw or re-export them</td>
+      </tr>
+      <tr>
+        <td>For a short link or a dynamic code: the short address and the destination URL</td>
+        <td>When you create one</td>
+        <td>To send a person who scans it to the right place</td>
+      </tr>
+      <tr>
+        <td>For a short link: the time of each scan, the browser user-agent string, and a one-way
+          hash of the visitor IP address &mdash; not the address itself</td>
+        <td>Each time someone opens your short link</td>
+        <td>To count scans and block abuse</td>
+      </tr>
+    </table>
+    <p class="muted">We do not ask for your name, phone number, location or contacts, and the app
+      carries no advertising and no third-party analytics or tracking SDK.</p>
+
+    <h2>Sign in with Google</h2>
+    <p>If you tap &ldquo;Continue with Google&rdquo;, Google shows you its own consent screen and
+      then tells us your email address and a Google account identifier. That is all we ask for and
+      all we receive &mdash; we never see your Google password. Google&rsquo;s handling of that step
+      is covered by the <a href="https://policies.google.com/privacy" rel="noopener">Google Privacy
+      Policy</a>. You can keep using QRSafe without signing in.</p>
+
+    <h2>Who else sees your data</h2>
+    <p>Nobody. We do not sell, rent or share it, and we send it to no advertiser, data broker or
+      analytics company. It sits on our own server, reachable only over an encrypted connection. We
+      would disclose data only if a valid Canadian legal order required it, and we would tell you
+      unless the order forbade it.</p>
+
+    <h2>A short link is public</h2>
+    <p>Anyone holding your short link can open it, exactly like any other web address. Do not put a
+      destination behind one that you would not want a stranger to reach.</p>
+
+    <h2>How long we keep it</h2>
+    <p>Your account and your codes stay until you ask us to delete them. Scan records for short
+      links are kept for 12 months and then removed.</p>
+
+    <h2>Deleting your data</h2>
+    <p>Delete a single code in the app and it is gone from our server too. To erase the whole
+      account &mdash; the email address and every code with it &mdash; email
+      <a href="mailto:info@semicolon.live">info@semicolon.live</a> from the address you signed in
+      with, or from any address if you never signed in, and tell us what to delete. We do it within
+      30 days and confirm by email. You may also ask us for a copy of what we hold, or for a
+      correction.</p>
+
+    <h2>Children</h2>
+    <p>QRSafe is not aimed at children under 13 and we do not knowingly collect their data. If a
+      child&rsquo;s data reached us, write to us and we will remove it.</p>
+
+    <h2>Security</h2>
+    <p>Traffic between the app and the server is encrypted with HTTPS. Access to the server is
+      limited to named administrators using key-based authentication. No system is perfect, so if a
+      breach ever affected your data we would tell you and the relevant authority as the law
+      requires.</p>
+
+    <h2>Changes</h2>
+    <p>If we change this policy we will update the date at the top and, for anything that
+      materially affects you, say so in the app.</p>
+
+    <h2>Your rights</h2>
+    <p>Canadian privacy law (PIPEDA) gives you the right to know what we hold about you, to get a
+      copy, to have mistakes corrected and to withdraw your consent. The contact address above is
+      the way to use any of them. If you are unhappy with our answer you may complain to the Office
+      of the Privacy Commissioner of Canada.</p>
+  </div>
+  <footer class="muted">QRSafe &middot; Semicolon &middot;
+    <a href="https://semicolon.live" rel="noopener">semicolon.live</a></footer>
+</main>
+</body>
+</html>
