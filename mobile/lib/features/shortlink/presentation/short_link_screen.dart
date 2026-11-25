@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_exception.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/app_bottom_nav.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../../../core/widgets/qr_view.dart';
@@ -75,6 +76,7 @@ class _ShortLinkScreenState extends ConsumerState<ShortLinkScreen> {
     return Scaffold(
       backgroundColor: c.canvas,
       appBar: AppBar(title: const Text('Short link')),
+      bottomNavigationBar: const AppBottomNav(currentIndex: 3),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
         child: created == null

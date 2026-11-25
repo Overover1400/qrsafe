@@ -83,6 +83,40 @@ func (s *Service) UpgradeToAccount(ctx context.Context, userID uuid.UUID, email,
 	return s.issue(u)
 }
 
+// SignInWithGoogle issues a token for a Google-verified email address.
+//
+// Three cases, in order: an account with that email already exists and is
+// simply signed into; the caller is still a guest, whose row is claimed so the
+// codes made before signing in stay hers; or there is nothing to claim and a
+// fresh account is created. guestID may be uuid.Nil.
+func (s *Service) SignInWithGoogle(ctx context.Context, guestID uuid.UUID, email string) (*Result, error) {
+	existing, err := s.repo.GetByEmail(ctx, email)
+	switch {
+	case err == nil:
+		return s.issue(existing)
+	case !errors.Is(err, users.ErrNotFound):
+		return nil, fmt.Errorf("looking up google user: %w", err)
+	}
+
+	if guestID != uuid.Nil {
+		u, err := s.repo.GetByID(ctx, guestID)
+		if err == nil && u.IsGuest {
+			u.Email = &email
+			u.IsGuest = false
+			if err := s.repo.Update(ctx, u); err != nil {
+				return nil, fmt.Errorf("claiming guest for google sign-in: %w", err)
+			}
+			return s.issue(u)
+		}
+	}
+
+	u := &users.User{Email: &email, IsGuest: false}
+	if err := s.repo.Create(ctx, u); err != nil {
+		return nil, fmt.Errorf("creating google user: %w", err)
+	}
+	return s.issue(u)
+}
+
 // Login verifies email/password and issues a token. Provided for completeness;
 // not yet wired to an endpoint.
 func (s *Service) Login(ctx context.Context, email, password string) (*Result, error) {
@@ -108,7 +142,11 @@ func (s *Service) Login(ctx context.Context, email, password string) (*Result, e
 }
 
 func (s *Service) issue(u *users.User) (*Result, error) {
-	token, expiresAt, err := s.tokens.Issue(u.ID, u.IsGuest, s.now())
+	var email string
+	if u.Email != nil {
+		email = *u.Email
+	}
+	token, expiresAt, err := s.tokens.Issue(u.ID, u.IsGuest, email, s.now())
 	if err != nil {
 		return nil, fmt.Errorf("issuing token: %w", err)
 	}

@@ -22,9 +22,12 @@ String _makeJwt({
   String seg(Map<String, dynamic> m) =>
       base64Url.encode(utf8.encode(jsonEncode(m))).replaceAll('=', '');
   final header = seg({'alg': 'HS256', 'typ': 'JWT'});
+  // These names must match the Go auth.Claims struct. The app read "uid" and
+  // "guest" for a while, which no token ever carries, so every launch threw a
+  // perfectly good stored token away and made another guest.
   final payload = seg({
-    'uid': uid,
-    'guest': guest,
+    'sub': uid,
+    'is_guest': guest,
     'exp': exp.millisecondsSinceEpoch ~/ 1000,
   });
   return '$header.$payload.sig';
@@ -61,6 +64,8 @@ void main() {
       overrides: [
         dioProvider.overrideWithValue(dio),
         secureTokenStoreProvider.overrideWithValue(tokenStore),
+        // No platform channels in a unit test.
+        signInLinkStreamProvider.overrideWithValue(const Stream<Uri>.empty()),
       ],
     );
     addTearDown(c.dispose);

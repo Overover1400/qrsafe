@@ -33,6 +33,15 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Sign-in deep link: the API sends the browser to
+                 qrsafe://auth?token=... once Google has confirmed the
+                 account, and app_links delivers it to the auth controller. -->
+            <intent-filter android:autoVerify="false">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="qrsafe" android:host="auth"/>
+            </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->

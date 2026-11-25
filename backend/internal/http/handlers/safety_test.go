@@ -58,7 +58,7 @@ func newSafetyEnv(t *testing.T) (http.Handler, string) {
 		Safety: safetyH,
 	}, nil, nil)
 
-	token, _, err := tokens.Issue(uuid.New(), true, time.Now())
+	token, _, err := tokens.Issue(uuid.New(), true, "", time.Now())
 	require.NoError(t, err)
 	return srv.Handler(), token
 }

@@ -23,6 +23,8 @@ dependencies:
   url_launcher: ^6.2.0
   # Declarative routing
   go_router: ^14.0.0
+  # Receives the qrsafe:// sign-in deep link
+  app_links: ^7.2.2
   # SVG rendering (icons, if needed)
   flutter_svg: ^2.0.0
   # Client-side QR rendering (static codes render offline; dynamic encode redirect_url)

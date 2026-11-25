@@ -15,6 +15,9 @@ var ErrInvalidToken = errors.New("invalid token")
 // Claims is the JWT payload carried by access tokens.
 type Claims struct {
 	IsGuest bool `json:"is_guest"`
+	// Email is present once the user has signed in, so the app can name the
+	// account without another round trip. Absent for guests.
+	Email string `json:"email,omitempty"`
 	jwt.RegisteredClaims
 }
 
@@ -32,10 +35,11 @@ func NewTokenManager(secret []byte, ttl time.Duration) *TokenManager {
 
 // Issue mints a signed token for userID. now is injected so callers (and tests)
 // control the issued-at/expiry basis. It returns the token and its expiry.
-func (m *TokenManager) Issue(userID uuid.UUID, isGuest bool, now time.Time) (string, time.Time, error) {
+func (m *TokenManager) Issue(userID uuid.UUID, isGuest bool, email string, now time.Time) (string, time.Time, error) {
 	expiresAt := now.Add(m.ttl)
 	claims := Claims{
 		IsGuest: isGuest,
+		Email:   email,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Subject:   userID.String(),
 			IssuedAt:  jwt.NewNumericDate(now),

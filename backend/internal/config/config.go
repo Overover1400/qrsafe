@@ -39,6 +39,17 @@ type Config struct {
 	// CORSAllowedOrigins is the list of origins permitted to call the API from a
 	// browser. Parsed from CORS_ALLOWED_ORIGINS (comma-separated).
 	CORSAllowedOrigins []string
+
+	// GoogleClientID / GoogleClientSecret / GoogleRedirectURL configure "sign
+	// in with Google". Leaving any of them empty turns the feature off; the
+	// endpoints then answer 503 rather than the service failing to start.
+	GoogleClientID     string
+	GoogleClientSecret string
+	GoogleRedirectURL  string
+
+	// AppAuthRedirect is the deep link the browser is handed once sign-in
+	// succeeds, carrying the issued token back into the app.
+	AppAuthRedirect string
 }
 
 // Load reads configuration from the process environment and validates it.
@@ -87,6 +98,14 @@ func Load() (*Config, error) {
 	cfg.RateLimitRPM = rpm
 
 	cfg.CORSAllowedOrigins = parseCSV(getEnv("CORS_ALLOWED_ORIGINS", defaultCORSAllowedOrigins))
+
+	cfg.GoogleClientID = os.Getenv("GOOGLE_CLIENT_ID")
+	cfg.GoogleClientSecret = os.Getenv("GOOGLE_CLIENT_SECRET")
+	cfg.GoogleRedirectURL = getEnv(
+		"GOOGLE_REDIRECT_URL",
+		strings.TrimRight(cfg.PublicBaseURL, "/")+"/api/v1/auth/google/callback",
+	)
+	cfg.AppAuthRedirect = getEnv("APP_AUTH_REDIRECT", "qrsafe://auth")
 
 	return cfg, nil
 }

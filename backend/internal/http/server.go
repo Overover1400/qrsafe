@@ -69,10 +69,15 @@ func NewServer(addr string, logger *slog.Logger, tokens *auth.TokenManager, h Ha
 		r.Route("/auth", func(r chi.Router) {
 			r.Post("/guest", h.Auth.Guest)
 
+			// Public: Google returns the *browser* here, which carries no
+			// bearer token. The signed state is what proves the flow.
+			r.Get("/google/callback", h.Auth.GoogleCallback)
+
 			// Protected: requires a valid bearer token.
 			r.Group(func(r chi.Router) {
 				r.Use(mw.Auth(tokens))
 				r.Post("/upgrade", h.Auth.Upgrade)
+				r.Post("/google/start", h.Auth.GoogleStart)
 			})
 		})
 

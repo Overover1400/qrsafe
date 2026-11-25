@@ -132,7 +132,7 @@ func (e *codesEnv) newUser(t *testing.T) (uuid.UUID, string) {
 	var id uuid.UUID
 	require.NoError(t, e.pool.QueryRow(context.Background(),
 		`INSERT INTO users (is_guest) VALUES (true) RETURNING id`).Scan(&id))
-	tok, _, err := e.tokens.Issue(id, true, time.Now())
+	tok, _, err := e.tokens.Issue(id, true, "", time.Now())
 	require.NoError(t, err)
 	return id, tok
 }

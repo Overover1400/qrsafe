@@ -13,7 +13,7 @@ func TestIssueAndVerify(t *testing.T) {
 	id := uuid.New()
 	now := time.Now()
 
-	token, expiresAt, err := tm.Issue(id, true, now)
+	token, expiresAt, err := tm.Issue(id, true, "", now)
 	require.NoError(t, err)
 	require.NotEmpty(t, token)
 	require.WithinDuration(t, now.Add(7*24*time.Hour), expiresAt, time.Second)
@@ -29,7 +29,7 @@ func TestVerifyExpiredToken(t *testing.T) {
 	id := uuid.New()
 
 	// Issued far enough in the past that it is already expired.
-	token, _, err := tm.Issue(id, false, time.Now().Add(-2*time.Hour))
+	token, _, err := tm.Issue(id, false, "", time.Now().Add(-2*time.Hour))
 	require.NoError(t, err)
 
 	_, err = tm.Verify(token)
@@ -40,7 +40,7 @@ func TestVerifyWrongSecret(t *testing.T) {
 	issuer := NewTokenManager([]byte("the-correct-signing-secret-0123456"), time.Hour)
 	verifier := NewTokenManager([]byte("a-different-signing-secret-9876543"), time.Hour)
 
-	token, _, err := issuer.Issue(uuid.New(), false, time.Now())
+	token, _, err := issuer.Issue(uuid.New(), false, "", time.Now())
 	require.NoError(t, err)
 
 	_, err = verifier.Verify(token)

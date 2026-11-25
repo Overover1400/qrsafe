@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/api/api_exception.dart';
 import '../../../core/config/env.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/app_bottom_nav.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../scan/application/recent_scans_controller.dart';
@@ -13,6 +15,34 @@ import '../../scan/application/recent_scans_controller.dart';
 /// guest) and the in-memory recent scans.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
+
+  /// Opens Google in the browser. The token comes back to the app over the
+  /// `qrsafe://auth` deep link, so there is nothing to await here beyond the
+  /// browser opening at all.
+  Future<void> _signInWithGoogle(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final opened =
+          await ref.read(authControllerProvider.notifier).signInWithGoogle();
+      if (!opened) {
+        messenger.showSnackBar(
+          const SnackBar(content: Text("Couldn't open the browser.")),
+        );
+      }
+    } on ApiException catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text(e.message)));
+    }
+  }
+
+  Future<void> _signOut(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    await ref.read(authControllerProvider.notifier).signOut();
+    if (context.mounted) {
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Signed out.')),
+      );
+    }
+  }
 
   Future<void> _clearLocalData(BuildContext context, WidgetRef ref) async {
     ref.read(recentScansProvider.notifier).clear();
@@ -31,10 +61,16 @@ class SettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: c.canvas,
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(title: const Text('Account')),
+      bottomNavigationBar: const AppBottomNav(currentIndex: 4),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
+          _AccountCard(
+            onSignIn: () => _signInWithGoogle(context, ref),
+            onSignOut: () => _signOut(context, ref),
+          ),
+          const SizedBox(height: 20),
           _InfoCard(
             children: [
               _InfoRow(label: 'API URL', value: Env.apiBaseUrl),
@@ -128,6 +164,84 @@ class _InfoRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+
+/// Who is signed in, and the one button that changes it.
+///
+/// Signing in matters beyond convenience: a guest session lives in this
+/// install only, so codes made before signing in are lost with the app.
+class _AccountCard extends ConsumerWidget {
+  const _AccountCard({required this.onSignIn, required this.onSignOut});
+
+  final VoidCallback onSignIn;
+  final VoidCallback onSignOut;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.qrColors;
+    final auth = ref.watch(authControllerProvider);
+    final user = auth.valueOrNull;
+    final signedIn = user != null && !user.isGuest;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: c.tealLight),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Icon(
+                signedIn ? Icons.verified_user_rounded : Icons.person_outline_rounded,
+                color: signedIn ? c.safe : c.inkTint,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  signedIn
+                      ? (user.email ?? 'Signed in')
+                      : 'Not signed in',
+                  style: TextStyle(
+                    color: c.inkDark,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            signedIn
+                ? 'Your codes are saved to this account.'
+                : 'Sign in to keep your codes if you change phone or reinstall.',
+            style: TextStyle(color: c.inkLight, fontSize: 13),
+          ),
+          const SizedBox(height: 16),
+          if (signedIn)
+            TextButton.icon(
+              onPressed: auth.isLoading ? null : onSignOut,
+              icon: Icon(Icons.logout_rounded, color: c.inkMid),
+              label: Text(
+                'Sign out',
+                style: TextStyle(color: c.inkMid, fontWeight: FontWeight.w600),
+              ),
+            )
+          else
+            PrimaryButton.solid(
+              label: 'Continue with Google',
+              color: c.teal,
+              icon: Icons.account_circle_rounded,
+              onPressed: auth.isLoading ? null : onSignIn,
+            ),
+        ],
+      ),
     );
   }
 }

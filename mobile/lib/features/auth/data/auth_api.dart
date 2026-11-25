@@ -20,6 +20,14 @@ class AuthApi {
     return AuthResponse.fromJson(res.data ?? const {});
   }
 
-  // upgrade() is intentionally omitted for this phase (email/password upgrade
-  // is a later brief).
+  /// `POST /api/v1/auth/google/start` — returns the Google URL to open in a
+  /// browser. The current (guest) token goes in the Authorization header, not
+  /// in the URL, so the backend can hand her codes to the account she signs
+  /// into without the token ever reaching browser history.
+  Future<String> googleStartUrl() async {
+    final res = await mapDioErrors(
+      () => _dio.post<Map<String, dynamic>>('/api/v1/auth/google/start'),
+    );
+    return (res.data?['auth_url'] as String?) ?? '';
+  }
 }

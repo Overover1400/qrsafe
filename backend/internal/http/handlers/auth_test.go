@@ -103,7 +103,15 @@ func newTestEnv(t *testing.T) *testEnv {
 	svc := auth.NewService(newFakeRepo(), tokens)
 
 	health := handlers.NewHealthHandler(okPinger{}, okPinger{})
-	authHandler := handlers.NewAuthHandler(svc)
+	// Google sign-in is left unconfigured here: these tests cover the guest
+	// and upgrade paths, and a zero GoogleConfig reports itself disabled.
+	authHandler := handlers.NewAuthHandler(
+		svc,
+		auth.GoogleConfig{},
+		auth.NewStateSigner([]byte("test-signing-secret-0123456789abc")),
+		"qrsafe://auth",
+		discardLogger(),
+	)
 	// Only Health and Auth are set: these auth tests never hit the other
 	// routes, and registering a method value of a nil pointer is safe until it
 	// is actually called.

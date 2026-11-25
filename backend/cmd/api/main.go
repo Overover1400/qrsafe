@@ -81,7 +81,17 @@ func run(logger *slog.Logger) error {
 	redirectSvc := codes.NewRedirectService(codesRepo, redirectCache, logger)
 
 	healthHandler := handlers.NewHealthHandler(pool, redisPinger{c: rdb})
-	authHandler := handlers.NewAuthHandler(authSvc)
+	authHandler := handlers.NewAuthHandler(
+		authSvc,
+		auth.GoogleConfig{
+			ClientID:     cfg.GoogleClientID,
+			ClientSecret: cfg.GoogleClientSecret,
+			RedirectURL:  cfg.GoogleRedirectURL,
+		},
+		auth.NewStateSigner(cfg.JWTSecret),
+		cfg.AppAuthRedirect,
+		logger,
+	)
 	codesHandler := handlers.NewCodesHandler(codesSvc, cfg.PublicBaseURL)
 	redirectHandler := handlers.NewRedirectHandler(redirectSvc, logger)
 	safetyHandler := handlers.NewSafetyHandler(safetySvc)

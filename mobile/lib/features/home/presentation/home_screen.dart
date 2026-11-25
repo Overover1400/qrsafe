@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/app_bottom_nav.dart';
 import 'widgets/recent_activity_list.dart';
 import 'widgets/scan_hero_button.dart';
 
@@ -34,7 +35,7 @@ class HomeScreen extends ConsumerWidget {
           ),
         ),
       ),
-      bottomNavigationBar: _BottomNav(),
+      bottomNavigationBar: const AppBottomNav(currentIndex: 0),
     );
   }
 }
@@ -109,60 +110,6 @@ class _Header extends StatelessWidget {
           tooltip: 'Settings',
           icon: Icon(Icons.settings_rounded, color: c.inkMid),
           onPressed: () => context.push('/settings'),
-        ),
-      ],
-    );
-  }
-}
-
-class _BottomNav extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final c = context.qrColors;
-    return BottomNavigationBar(
-      currentIndex: 0,
-      type: BottomNavigationBarType.fixed,
-      backgroundColor: Colors.white,
-      selectedItemColor: c.teal,
-      unselectedItemColor: c.inkLight,
-      showUnselectedLabels: true,
-      onTap: (index) {
-        switch (index) {
-          case 1:
-            context.push('/create');
-          case 2:
-            context.push('/scan');
-          case 3:
-            context.push('/link');
-          case 4:
-            context.push('/settings');
-          case 0:
-          default:
-            break; // already home
-        }
-      },
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home_rounded),
-          label: 'Home',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.add_circle_outline_rounded),
-          label: 'Create',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.qr_code_scanner_rounded),
-          label: 'Scan',
-        ),
-        // The saved-codes dashboard moved to Settings; this slot is the
-        // short-link tool, which is what she reaches for daily.
-        BottomNavigationBarItem(
-          icon: Icon(Icons.link_rounded),
-          label: 'Link',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.person_rounded),
-          label: 'Account',
         ),
       ],
     );

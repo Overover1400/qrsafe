@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/api/api_exception.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/app_bottom_nav.dart';
 import '../../../core/widgets/app_text_field.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../application/generator_controller.dart';
@@ -107,6 +108,7 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
           ),
         ],
       ),
+      bottomNavigationBar: const AppBottomNav(currentIndex: 1),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
         child: Column(

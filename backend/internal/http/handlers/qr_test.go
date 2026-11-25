@@ -27,7 +27,7 @@ func newQREnv(t *testing.T) (http.Handler, string) {
 		Health: health,
 		QR:     qrH,
 	}, nil, nil)
-	token, _, err := tokens.Issue(uuid.New(), true, time.Now())
+	token, _, err := tokens.Issue(uuid.New(), true, "", time.Now())
 	require.NoError(t, err)
 	return srv.Handler(), token
 }
