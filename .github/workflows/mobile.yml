@@ -37,6 +37,10 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: stable
+          # Pinned so CI matches the version the code is developed against.
+          # On "stable" alone a new release can fail the build on a day no one
+          # touched the app.
+          flutter-version: 3.44.0
           cache: true
 
       - name: Show Flutter version
@@ -46,7 +50,19 @@ jobs:
         run: flutter pub get
 
       - name: Analyze
-        run: flutter analyze
+        # Repeat each finding as a workflow error. Log files need a sign-in to
+        # read; annotations do not, so a failure here can be diagnosed from the
+        # run summary alone.
+        run: |
+          set +e
+          flutter analyze 2>&1 | tee analyze.txt
+          status=${PIPESTATUS[0]}
+          if [ $status -ne 0 ]; then
+            grep -E "^ +(error|warning|info)" analyze.txt | while read -r line; do
+              echo "::error::$line"
+            done
+          fi
+          exit $status
 
       - name: Run tests
         run: flutter test
