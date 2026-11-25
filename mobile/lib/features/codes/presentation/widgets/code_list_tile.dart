@@ -26,10 +26,10 @@ class CodeListTile extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.8),
             borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: c.peachLight.withValues(alpha: 0.6)),
+            border: Border.all(color: c.tealLight.withValues(alpha: 0.6)),
             boxShadow: [
               BoxShadow(
-                color: c.peach.withValues(alpha: 0.12),
+                color: c.teal.withValues(alpha: 0.12),
                 blurRadius: 14,
                 offset: const Offset(0, 6),
               ),
@@ -41,10 +41,10 @@ class CodeListTile extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: c.peachLight.withValues(alpha: 0.4),
+                  color: c.tealLight.withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: Icon(codeTypeIcon(code.type), color: c.coral),
+                child: Icon(codeTypeIcon(code.type), color: c.accent),
               ),
               const SizedBox(width: 14),
               Expanded(
@@ -56,7 +56,7 @@ class CodeListTile extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: c.brownDark,
+                        color: c.inkDark,
                         fontWeight: FontWeight.w700,
                         fontSize: 15,
                       ),
@@ -64,14 +64,14 @@ class CodeListTile extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       codeTypeLabel(code.type),
-                      style: TextStyle(color: c.brownLight, fontSize: 13),
+                      style: TextStyle(color: c.inkLight, fontSize: 13),
                     ),
                   ],
                 ),
               ),
               if (code.isDynamic) const _DynamicBadge(),
               const SizedBox(width: 4),
-              Icon(Icons.chevron_right_rounded, color: c.brownTint),
+              Icon(Icons.chevron_right_rounded, color: c.inkTint),
             ],
           ),
         ),

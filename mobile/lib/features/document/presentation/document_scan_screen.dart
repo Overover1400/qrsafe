@@ -81,7 +81,7 @@ class _DocumentScanScreenState extends State<DocumentScanScreen> {
   Widget build(BuildContext context) {
     final c = context.qrColors;
     return Scaffold(
-      backgroundColor: c.cream,
+      backgroundColor: c.canvas,
       appBar: AppBar(title: const Text('Scan a document')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
@@ -96,18 +96,18 @@ class _DocumentScanScreenState extends State<DocumentScanScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         const SizedBox(height: 24),
-        Icon(Icons.document_scanner_rounded, size: 72, color: c.peach),
+        Icon(Icons.document_scanner_rounded, size: 72, color: c.teal),
         const SizedBox(height: 20),
         Text(
           'Point the camera at a page. The frame and the crop are found for '
           'you, and you can drag the corners before you keep it.',
           textAlign: TextAlign.center,
-          style: TextStyle(color: c.brownMid, fontSize: 14),
+          style: TextStyle(color: c.inkMid, fontSize: 14),
         ),
         const SizedBox(height: 28),
         PrimaryButton.solid(
           label: _busy ? 'Opening…' : 'Scan a document',
-          color: c.brownDark,
+          color: c.inkDark,
           icon: Icons.camera_alt_rounded,
           onPressed: _busy ? null : _scan,
         ),
@@ -122,7 +122,7 @@ class _DocumentScanScreenState extends State<DocumentScanScreen> {
       children: [
         Text(
           _pages.length == 1 ? '1 page' : '${_pages.length} pages',
-          style: TextStyle(color: c.brownMid, fontWeight: FontWeight.w700),
+          style: TextStyle(color: c.inkMid, fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 12),
         SizedBox(
@@ -140,17 +140,17 @@ class _DocumentScanScreenState extends State<DocumentScanScreen> {
         const SizedBox(height: 24),
         PrimaryButton.solid(
           label: _busy ? 'Working…' : 'Save as PDF',
-          color: c.brownDark,
+          color: c.inkDark,
           icon: Icons.picture_as_pdf_rounded,
           onPressed: _busy ? null : _savePdf,
         ),
         const SizedBox(height: 12),
         TextButton.icon(
           onPressed: _busy ? null : _scan,
-          icon: Icon(Icons.refresh_rounded, color: c.brownMid),
+          icon: Icon(Icons.refresh_rounded, color: c.inkMid),
           label: Text(
             'Scan again',
-            style: TextStyle(color: c.brownMid, fontWeight: FontWeight.w600),
+            style: TextStyle(color: c.inkMid, fontWeight: FontWeight.w600),
           ),
         ),
       ],

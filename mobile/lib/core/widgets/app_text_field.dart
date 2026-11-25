@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 
-/// A Material 3 text field styled with the peach palette: a soft cream-tinted
+/// A Material 3 text field styled with the teal palette: a soft canvas-tinted
 /// fill, brown text, and a brown focus border. Used across the generator forms
 /// and edit dialogs so inputs look consistent.
 class AppTextField extends StatelessWidget {
@@ -40,26 +40,26 @@ class AppTextField extends StatelessWidget {
       maxLines: obscureText ? 1 : maxLines,
       maxLength: maxLength,
       obscureText: obscureText,
-      style: TextStyle(color: c.brownDark),
-      cursorColor: c.brownMid,
+      style: TextStyle(color: c.inkDark),
+      cursorColor: c.inkMid,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
-        labelStyle: TextStyle(color: c.brownLight),
-        floatingLabelStyle: TextStyle(color: c.brownMid),
+        labelStyle: TextStyle(color: c.inkLight),
+        floatingLabelStyle: TextStyle(color: c.inkMid),
         filled: true,
         fillColor: Colors.white.withValues(alpha: 0.7),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: c.peachLight.withValues(alpha: 0.7)),
+          borderSide: BorderSide(color: c.tealLight.withValues(alpha: 0.7)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: c.peachLight.withValues(alpha: 0.7)),
+          borderSide: BorderSide(color: c.tealLight.withValues(alpha: 0.7)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: c.brownMid, width: 1.6),
+          borderSide: BorderSide(color: c.inkMid, width: 1.6),
         ),
       ),
     );

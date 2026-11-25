@@ -38,7 +38,7 @@ class GeneratorState {
     label: '',
   );
 
-  static const _defaultColor = 0xFF3D2E1F; // brownDark
+  static const _defaultColor = 0xFF3D2E1F; // inkDark
 
   /// The payload for the currently selected type.
   CodePayload get payload => payloads[type]!;
@@ -156,12 +156,12 @@ class GeneratorController extends Notifier<GeneratorState> {
 
 /// The curated foreground swatches offered in the generator (value ints so they
 /// live in immutable state cleanly). Blue and lavender are generator-only;
-/// the rest mirror the shared peach palette.
+/// the rest mirror the shared teal palette.
 const generatorSwatches = <int>[
-  0xFF3D2E1F, // brownDark
-  0xFFE96B7A, // coral
-  0xFFFFB68A, // peachMid
-  0xFF7AA8FF, // blue
-  0xFFA88AE8, // lavender
-  0xFF2D8F5C, // safe green
+  0xFF0F3B3F, // inkDark
+  0xFF0E5F6B, // deep teal
+  0xFF134E8A, // navy
+  0xFF5B3FA8, // violet
+  0xFF16734A, // forest
+  0xFF8A2B3F, // wine
 ];

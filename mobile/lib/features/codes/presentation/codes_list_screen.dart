@@ -10,7 +10,7 @@ import '../data/code_models.dart';
 import 'widgets/code_list_tile.dart';
 import 'widgets/empty_codes_view.dart';
 
-/// The dashboard: a peach stat card, an "Active codes · N" header, and the
+/// The dashboard: a teal stat card, an "Active codes · N" header, and the
 /// scrollable list of the user's codes with pull-to-refresh and infinite scroll.
 class CodesListScreen extends ConsumerWidget {
   const CodesListScreen({super.key});
@@ -21,13 +21,13 @@ class CodesListScreen extends ConsumerWidget {
     final state = ref.watch(codesListControllerProvider);
 
     return Scaffold(
-      backgroundColor: c.cream,
+      backgroundColor: c.canvas,
       appBar: AppBar(
         title: const Text('My codes'),
         actions: [
           IconButton(
             tooltip: 'New code',
-            icon: Icon(Icons.add_rounded, color: c.coral),
+            icon: Icon(Icons.add_rounded, color: c.accent),
             onPressed: () => context.push('/create'),
           ),
         ],
@@ -39,7 +39,7 @@ class CodesListScreen extends ConsumerWidget {
           onRetry: () => ref.read(codesListControllerProvider.notifier).refresh(),
         ),
         data: (page) => RefreshIndicator(
-          color: c.peach,
+          color: c.teal,
           onRefresh: () =>
               ref.read(codesListControllerProvider.notifier).refresh(),
           child: page.codes.isEmpty
@@ -104,7 +104,7 @@ class _StatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: c.peachGradient,
+        gradient: c.tealGradient,
         borderRadius: BorderRadius.circular(28),
       ),
       child: Column(
@@ -146,7 +146,7 @@ class _ActiveHeader extends StatelessWidget {
         Text(
           'Active codes · $count',
           style: TextStyle(
-            color: c.brownDark,
+            color: c.inkDark,
             fontSize: 18,
             fontWeight: FontWeight.w800,
           ),
@@ -182,13 +182,13 @@ class _ErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.cloud_off_rounded, size: 48, color: c.brownLight),
+            Icon(Icons.cloud_off_rounded, size: 48, color: c.inkLight),
             const SizedBox(height: 12),
             Text(message, textAlign: TextAlign.center),
             const SizedBox(height: 16),
             FilledButton(
               onPressed: onRetry,
-              style: FilledButton.styleFrom(backgroundColor: c.peach),
+              style: FilledButton.styleFrom(backgroundColor: c.teal),
               child: const Text('Retry'),
             ),
           ],

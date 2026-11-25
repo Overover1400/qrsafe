@@ -1,35 +1,35 @@
 import 'package:flutter/material.dart';
 
-/// The QRSafe peach palette. Raw constants only — UI code should read colors
+/// The QRSafe teal palette. Raw constants only — UI code should read colors
 /// from [QRSafeColors] (the [ThemeExtension]) so they stay themeable, but these
 /// are the single source of truth the extension is built from.
 class AppColors {
   const AppColors._();
 
-  // Peach gradient + warm neutrals.
-  static const peachLight = Color(0xFFFFD89C);
-  static const peachMid = Color(0xFFFFB68A);
-  static const peach = Color(0xFFFF8A6E);
-  static const coral = Color(0xFFE96B7A);
-  static const cream = Color(0xFFFFF8F0);
-  static const brownDark = Color(0xFF3D2E1F);
-  static const brownMid = Color(0xFF6B4F33);
-  static const brownLight = Color(0xFF8B7A66);
-  static const brownTint = Color(0xFFB59474);
+  // Green-blue gradient + cool neutrals.
+  static const tealLight = Color(0xFF7FE3D0);
+  static const tealMid = Color(0xFF3FC9C0);
+  static const teal = Color(0xFF14A89C);
+  static const accent = Color(0xFF0E7C8A);
+  static const canvas = Color(0xFFF1FAF8);
+  static const inkDark = Color(0xFF0F3B3F);
+  static const inkMid = Color(0xFF2C5A60);
+  static const inkLight = Color(0xFF5E8A8E);
+  static const inkTint = Color(0xFF9FC2C4);
 
   // Verdict colors (foreground + tinted background per state).
-  static const safe = Color(0xFF2D8F5C);
-  static const safeBg = Color(0xFFDDF5E8);
-  static const caution = Color(0xFFB87A2A);
-  static const cautionBg = Color(0xFFFFE8D6);
-  static const danger = Color(0xFFE26B6B);
-  static const dangerBg = Color(0xFFFCE0E0);
-  static const unknown = Color(0xFF8B7A66);
-  static const unknownBg = Color(0xFFEDE8E0);
+  static const safe = Color(0xFF1E9E6A);
+  static const safeBg = Color(0xFFD8F4E7);
+  static const caution = Color(0xFFB8781F);
+  static const cautionBg = Color(0xFFFCEBD2);
+  static const danger = Color(0xFFD95757);
+  static const dangerBg = Color(0xFFFBE0E0);
+  static const unknown = Color(0xFF5E8A8E);
+  static const unknownBg = Color(0xFFE4EEEE);
 
   /// The hero / CTA gradient used across the app.
-  static const peachGradient = LinearGradient(
-    colors: [peachMid, peach, coral],
+  static const tealGradient = LinearGradient(
+    colors: [tealMid, teal, accent],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );

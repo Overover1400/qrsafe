@@ -72,11 +72,13 @@ jobs:
         # emulator-localhost default in lib/core/config/env.dart.
         run: flutter build apk --debug --dart-define=API_BASE_URL=https://api.qrsafe.flemby.com
 
-      - name: Build per-ABI APKs
-        # The universal APK carries every architecture and lands near 90 MB,
-        # which is too big to send over Telegram and slow to download on a
-        # phone. The arm64 slice is the one real phones need.
-        run: flutter build apk --debug --split-per-abi --dart-define=API_BASE_URL=https://api.qrsafe.flemby.com
+      - name: Build release per-ABI APKs
+        # What she actually installs. A debug APK carries every architecture
+        # and the debug machinery, which lands near 90 MB — too big to send
+        # over Telegram. The release arm64 slice is a fraction of that. It is
+        # signed with the debug key (see android/app/build.gradle.kts), so it
+        # installs by sideloading but is not Play-ready.
+        run: flutter build apk --release --split-per-abi --dart-define=API_BASE_URL=https://api.qrsafe.flemby.com
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
@@ -84,7 +86,7 @@ jobs:
           name: qrsafe-debug-apk
           path: |
             mobile/build/app/outputs/flutter-apk/app-debug.apk
-            mobile/build/app/outputs/flutter-apk/app-arm64-v8a-debug.apk
+            mobile/build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
           retention-days: 30
 
   publish-apk:
@@ -118,7 +120,7 @@ jobs:
         # path after the colon is relative to that web root. downloads/ is
         # protected from the web deploy's --delete.
         run: |
-          cp apk/app-arm64-v8a-debug.apk qrsafe.apk
+          cp apk/app-arm64-v8a-release.apk qrsafe.apk
           rsync -vz \
             -e "ssh -i $HOME/.ssh/deploy_key -o IdentitiesOnly=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=accept-new" \
             qrsafe.apk deploy@193.181.211.239:downloads/qrsafe.apk

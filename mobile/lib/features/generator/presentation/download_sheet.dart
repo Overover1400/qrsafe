@@ -100,7 +100,7 @@ class DownloadSheet extends StatelessWidget {
             Text(
               'Download',
               style: TextStyle(
-                color: c.brownDark,
+                color: c.inkDark,
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
               ),
@@ -152,12 +152,12 @@ class _Option extends StatelessWidget {
       opacity: enabled ? 1 : 0.5,
       child: ListTile(
         contentPadding: EdgeInsets.zero,
-        leading: Icon(icon, color: c.coral),
+        leading: Icon(icon, color: c.accent),
         title: Text(
           title,
-          style: TextStyle(color: c.brownDark, fontWeight: FontWeight.w600),
+          style: TextStyle(color: c.inkDark, fontWeight: FontWeight.w600),
         ),
-        subtitle: Text(subtitle, style: TextStyle(color: c.brownLight)),
+        subtitle: Text(subtitle, style: TextStyle(color: c.inkLight)),
         onTap: onTap,
       ),
     );

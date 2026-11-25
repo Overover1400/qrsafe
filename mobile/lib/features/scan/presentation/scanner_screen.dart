@@ -59,7 +59,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: AppColors.cream,
+      backgroundColor: AppColors.canvas,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -182,7 +182,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
   }
 }
 
-/// Dimmed surround with a clear centered window and peach corner brackets.
+/// Dimmed surround with a clear centered window and teal corner brackets.
 class _ScannerOverlay extends StatelessWidget {
   const _ScannerOverlay();
 
@@ -214,7 +214,7 @@ class _BracketPainter extends CustomPainter {
 
     // Peach corner brackets.
     final bracket = Paint()
-      ..color = AppColors.peach
+      ..color = AppColors.teal
       ..strokeWidth = 5
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;

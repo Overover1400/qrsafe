@@ -56,7 +56,7 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
       final state = ref.read(generatorControllerProvider);
       await showModalBottomSheet<void>(
         context: context,
-        backgroundColor: context.qrColors.cream,
+        backgroundColor: context.qrColors.canvas,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
@@ -69,7 +69,10 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
       );
       if (!mounted) return;
       controller.reset();
-      context.go('/codes/${code.id}');
+      // pushReplacement, not go: go() clears the stack, which left the
+      // detail screen with no way back to Home — she had to kill the app
+      // to make a second code.
+      context.pushReplacement('/codes/${code.id}');
     } on ApiException catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
@@ -88,7 +91,7 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
     final canSave = state.isValid && !_saving;
 
     return Scaffold(
-      backgroundColor: c.cream,
+      backgroundColor: c.canvas,
       appBar: AppBar(
         title: const Text('New code'),
         actions: [
@@ -97,7 +100,7 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
             child: Text(
               'Save',
               style: TextStyle(
-                color: canSave ? c.coral : c.brownTint,
+                color: canSave ? c.accent : c.inkTint,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -157,7 +160,7 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
             const SizedBox(height: 24),
             PrimaryButton.solid(
               label: _saving ? 'Saving…' : 'Save & Download',
-              color: c.brownDark,
+              color: c.inkDark,
               icon: Icons.download_rounded,
               onPressed: canSave ? _save : null,
             ),
@@ -166,7 +169,7 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
               Center(
                 child: Text(
                   _reason(state.payload),
-                  style: TextStyle(color: c.brownLight, fontSize: 12),
+                  style: TextStyle(color: c.inkLight, fontSize: 12),
                 ),
               ),
             ],
@@ -199,17 +202,17 @@ class _MultiLinkNote extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: c.peachLight),
+        border: Border.all(color: c.tealLight),
       ),
       child: Row(
         children: [
-          Icon(Icons.auto_awesome_motion_rounded, size: 20, color: c.coral),
+          Icon(Icons.auto_awesome_motion_rounded, size: 20, color: c.accent),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               '$count tabs filled. Saving makes one QR that opens a page with '
               'all of them.',
-              style: TextStyle(color: c.brownMid, fontSize: 13),
+              style: TextStyle(color: c.inkMid, fontSize: 13),
             ),
           ),
         ],
@@ -227,7 +230,7 @@ class _SectionLabel extends StatelessWidget {
     return Text(
       text,
       style: TextStyle(
-        color: context.qrColors.brownMid,
+        color: context.qrColors.inkMid,
         fontWeight: FontWeight.w700,
       ),
     );

@@ -77,7 +77,7 @@ class _ErrorBody extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.cloud_off_rounded, size: 40, color: context.qrColors.brownLight),
+          Icon(Icons.cloud_off_rounded, size: 40, color: context.qrColors.inkLight),
           const SizedBox(height: 12),
           Text(message, textAlign: TextAlign.center),
         ],
@@ -111,7 +111,7 @@ class ScanResultView extends StatelessWidget {
         Center(
           child: TextButton(
             onPressed: () => Navigator.of(context).maybePop(),
-            child: Text('Dismiss', style: TextStyle(color: c.brownLight)),
+            child: Text('Dismiss', style: TextStyle(color: c.inkLight)),
           ),
         ),
       ],
@@ -129,7 +129,7 @@ class _Grabber extends StatelessWidget {
       height: 4,
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: context.qrColors.brownTint.withValues(alpha: 0.4),
+        color: context.qrColors.inkTint.withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(999),
       ),
     );
@@ -145,7 +145,7 @@ class _HeaderCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: context.qrColors.peachGradient,
+        gradient: context.qrColors.tealGradient,
         borderRadius: BorderRadius.circular(28),
       ),
       child: Column(
@@ -191,7 +191,7 @@ class _ChecksList extends StatelessWidget {
         Text(
           'Safety checks',
           style: TextStyle(
-            color: c.brownMid,
+            color: c.inkMid,
             fontWeight: FontWeight.w700,
             fontSize: 14,
           ),
@@ -209,7 +209,7 @@ class _ChecksList extends StatelessWidget {
           ...reasons.map(
             (r) => _CheckRow(
               icon: Icons.info_outline_rounded,
-              color: c.brownLight,
+              color: c.inkLight,
               text: r.message.isEmpty ? r.code : r.message,
             ),
           ),
@@ -264,7 +264,7 @@ class _VerdictAction extends StatelessWidget {
       case Verdict.safe:
         return PrimaryButton.solid(
           label: 'Open link',
-          color: c.brownDark,
+          color: c.inkDark,
           icon: Icons.open_in_new_rounded,
           onPressed: () => _open(context),
         );
@@ -278,7 +278,7 @@ class _VerdictAction extends StatelessWidget {
       case Verdict.unknown:
         return PrimaryButton.solid(
           label: 'Open link',
-          color: c.brownDark,
+          color: c.inkDark,
           subtitle: "Couldn't verify — proceed with caution",
           onPressed: () => _open(context),
         );
@@ -287,7 +287,7 @@ class _VerdictAction extends StatelessWidget {
           children: [
             PrimaryButton.solid(
               label: "Don't open",
-              color: c.brownTint,
+              color: c.inkTint,
               onPressed: null, // disabled-looking; no easy way through
             ),
             const SizedBox(height: 10),

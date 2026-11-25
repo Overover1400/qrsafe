@@ -5,7 +5,7 @@ import '../../data/code_payload.dart';
 import 'code_type_visuals.dart';
 
 /// Horizontal, scrollable selector for the five code types. Calls [onSelected]
-/// when a chip is tapped; the active chip uses the peach gradient.
+/// when a chip is tapped; the active chip uses the teal gradient.
 class TypeChipRow extends StatelessWidget {
   const TypeChipRow({
     super.key,
@@ -54,13 +54,13 @@ class _Chip extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
         child: Ink(
           decoration: BoxDecoration(
-            gradient: active ? c.peachGradient : null,
+            gradient: active ? c.tealGradient : null,
             color: active ? null : Colors.white.withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(999),
             border: Border.all(
               color: active
                   ? Colors.transparent
-                  : c.peachLight.withValues(alpha: 0.7),
+                  : c.tealLight.withValues(alpha: 0.7),
             ),
           ),
           child: Padding(
@@ -70,13 +70,13 @@ class _Chip extends StatelessWidget {
                 Icon(
                   codeTypeIcon(type),
                   size: 18,
-                  color: active ? Colors.white : c.brownMid,
+                  color: active ? Colors.white : c.inkMid,
                 ),
                 const SizedBox(width: 6),
                 Text(
                   codeTypeLabel(type),
                   style: TextStyle(
-                    color: active ? Colors.white : c.brownMid,
+                    color: active ? Colors.white : c.inkMid,
                     fontWeight: FontWeight.w700,
                   ),
                 ),

@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/primary_button.dart';
 
-/// The dashboard's zero-state: a peach illustration and a button that routes to
+/// The dashboard's zero-state: a teal illustration and a button that routes to
 /// the generator.
 class EmptyCodesView extends StatelessWidget {
   const EmptyCodesView({super.key, required this.onCreate});
@@ -22,7 +22,7 @@ class EmptyCodesView extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(28),
               decoration: BoxDecoration(
-                gradient: c.peachGradient,
+                gradient: c.tealGradient,
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.qr_code_2_rounded, size: 64, color: Colors.white),
@@ -31,7 +31,7 @@ class EmptyCodesView extends StatelessWidget {
             Text(
               'No codes yet',
               style: TextStyle(
-                color: c.brownDark,
+                color: c.inkDark,
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
               ),
@@ -40,7 +40,7 @@ class EmptyCodesView extends StatelessWidget {
             Text(
               'Create your first QR code and it’ll appear here.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: c.brownLight),
+              style: TextStyle(color: c.inkLight),
             ),
             const SizedBox(height: 24),
             PrimaryButton(

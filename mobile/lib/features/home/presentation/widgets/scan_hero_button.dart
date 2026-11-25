@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_theme.dart';
 
-/// The big peach-gradient "Tap to scan" hero on the home screen. Tapping it
+/// The big teal-gradient "Tap to scan" hero on the home screen. Tapping it
 /// opens the scanner.
 class ScanHeroButton extends StatelessWidget {
   const ScanHeroButton({super.key, required this.onTap});
@@ -21,11 +21,11 @@ class ScanHeroButton extends StatelessWidget {
           // its text and sits left of centre.
           width: double.infinity,
           decoration: BoxDecoration(
-            gradient: context.qrColors.peachGradient,
+            gradient: context.qrColors.tealGradient,
             borderRadius: BorderRadius.circular(28),
             boxShadow: [
               BoxShadow(
-                color: context.qrColors.coral.withValues(alpha: 0.35),
+                color: context.qrColors.accent.withValues(alpha: 0.35),
                 blurRadius: 24,
                 offset: const Offset(0, 12),
               ),

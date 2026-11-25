@@ -27,11 +27,11 @@ class DynamicToggle extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white.withValues(alpha: 0.7),
           borderRadius: BorderRadius.circular(22),
-          border: Border.all(color: c.peachLight.withValues(alpha: 0.7)),
+          border: Border.all(color: c.tealLight.withValues(alpha: 0.7)),
         ),
         child: Row(
           children: [
-            Icon(Icons.sync_rounded, color: c.coral),
+            Icon(Icons.sync_rounded, color: c.accent),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -40,7 +40,7 @@ class DynamicToggle extends StatelessWidget {
                   Text(
                     'Dynamic · never expires',
                     style: TextStyle(
-                      color: c.brownDark,
+                      color: c.inkDark,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -49,14 +49,14 @@ class DynamicToggle extends StatelessWidget {
                     enabled
                         ? 'Edit where it points later without reprinting.'
                         : 'Only URL codes can be dynamic.',
-                    style: TextStyle(color: c.brownLight, fontSize: 12),
+                    style: TextStyle(color: c.inkLight, fontSize: 12),
                   ),
                 ],
               ),
             ),
             Switch(
               value: value,
-              activeThumbColor: c.peach,
+              activeThumbColor: c.teal,
               onChanged: enabled ? onChanged : null,
             ),
           ],

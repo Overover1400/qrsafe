@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 
-/// The peach-gradient CTA used across the app (e.g. the home hero, sheet
+/// The teal-gradient CTA used across the app (e.g. the home hero, sheet
 /// actions). Pass [onPressed] null to render a disabled (dimmed) state.
 ///
 /// For non-gradient variants (e.g. the amber "Open anyway" or a solid brown
@@ -35,13 +35,13 @@ class PrimaryButton extends StatelessWidget {
   /// Optional secondary line under the label (e.g. a caution note).
   final String? subtitle;
 
-  /// Solid background color; when null the peach gradient is used.
+  /// Solid background color; when null the teal gradient is used.
   final Color? color;
 
   @override
   Widget build(BuildContext context) {
     final enabled = onPressed != null;
-    final gradient = color == null ? context.qrColors.peachGradient : null;
+    final gradient = color == null ? context.qrColors.tealGradient : null;
 
     return Opacity(
       opacity: enabled ? 1 : 0.5,

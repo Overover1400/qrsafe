@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/qr_view.dart';
 
-/// The centered white QR card with a soft peach shadow, plus the green
+/// The centered white QR card with a soft teal shadow, plus the green
 /// "No watermark · Yours forever" reassurance pill below it.
 class LiveQrPreview extends StatelessWidget {
   const LiveQrPreview({super.key, required this.data, required this.color});
@@ -23,7 +23,7 @@ class LiveQrPreview extends StatelessWidget {
             borderRadius: BorderRadius.circular(28),
             boxShadow: [
               BoxShadow(
-                color: c.peach.withValues(alpha: 0.25),
+                color: c.teal.withValues(alpha: 0.25),
                 blurRadius: 24,
                 offset: const Offset(0, 12),
               ),

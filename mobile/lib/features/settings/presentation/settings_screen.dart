@@ -30,7 +30,7 @@ class SettingsScreen extends ConsumerWidget {
     final auth = ref.watch(authControllerProvider);
 
     return Scaffold(
-      backgroundColor: c.cream,
+      backgroundColor: c.canvas,
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         padding: const EdgeInsets.all(20),
@@ -54,14 +54,14 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 28),
           PrimaryButton.solid(
             label: 'My saved codes',
-            color: c.brownDark,
+            color: c.inkDark,
             icon: Icons.qr_code_2_rounded,
             onPressed: () => context.push('/codes'),
           ),
           const SizedBox(height: 12),
           PrimaryButton.solid(
             label: 'Clear local data',
-            color: c.coral,
+            color: c.accent,
             icon: Icons.delete_outline_rounded,
             onPressed: auth.isLoading
                 ? null
@@ -71,7 +71,7 @@ class SettingsScreen extends ConsumerWidget {
           Text(
             'Removes your guest session token and clears recent scans. A fresh '
             'guest account is created automatically.',
-            style: TextStyle(color: c.brownLight, fontSize: 13),
+            style: TextStyle(color: c.inkLight, fontSize: 13),
           ),
         ],
       ),
@@ -96,7 +96,7 @@ class _InfoCard extends StatelessWidget {
         color: Colors.white.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color: context.qrColors.peachLight.withValues(alpha: 0.6),
+          color: context.qrColors.tealLight.withValues(alpha: 0.6),
         ),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: children),
@@ -117,14 +117,14 @@ class _InfoRow extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TextStyle(color: c.brownLight, fontWeight: FontWeight.w600),
+          style: TextStyle(color: c.inkLight, fontWeight: FontWeight.w600),
         ),
         const SizedBox(width: 16),
         Expanded(
           child: Text(
             value,
             textAlign: TextAlign.right,
-            style: TextStyle(color: c.brownDark, fontWeight: FontWeight.w600),
+            style: TextStyle(color: c.inkDark, fontWeight: FontWeight.w600),
           ),
         ),
       ],

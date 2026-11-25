@@ -32,19 +32,19 @@ class _BootstrapError extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.qrColors;
     return Scaffold(
-      backgroundColor: c.cream,
+      backgroundColor: c.canvas,
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.cloud_off_rounded, size: 56, color: c.brownLight),
+              Icon(Icons.cloud_off_rounded, size: 56, color: c.inkLight),
               const SizedBox(height: 16),
               Text(
                 "Couldn't start QRSafe",
                 style: TextStyle(
-                  color: c.brownDark,
+                  color: c.inkDark,
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
                 ),
@@ -53,12 +53,12 @@ class _BootstrapError extends StatelessWidget {
               Text(
                 'Check your connection and try again.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: c.brownLight),
+                style: TextStyle(color: c.inkLight),
               ),
               const SizedBox(height: 24),
               FilledButton(
                 onPressed: onRetry,
-                style: FilledButton.styleFrom(backgroundColor: c.peach),
+                style: FilledButton.styleFrom(backgroundColor: c.teal),
                 child: const Text('Retry'),
               ),
             ],

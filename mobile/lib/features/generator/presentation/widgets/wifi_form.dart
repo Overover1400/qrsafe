@@ -37,12 +37,12 @@ class WifiForm extends StatelessWidget {
           initialValue: payload.auth,
           decoration: InputDecoration(
             labelText: 'Security',
-            labelStyle: TextStyle(color: c.brownLight),
+            labelStyle: TextStyle(color: c.inkLight),
             filled: true,
             fillColor: Colors.white.withValues(alpha: 0.7),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: c.peachLight.withValues(alpha: 0.7)),
+              borderSide: BorderSide(color: c.tealLight.withValues(alpha: 0.7)),
             ),
           ),
           items: const [
@@ -56,8 +56,8 @@ class WifiForm extends StatelessWidget {
         const SizedBox(height: 4),
         SwitchListTile(
           contentPadding: EdgeInsets.zero,
-          activeThumbColor: c.peach,
-          title: Text('Hidden network', style: TextStyle(color: c.brownDark)),
+          activeThumbColor: c.teal,
+          title: Text('Hidden network', style: TextStyle(color: c.inkDark)),
           value: payload.hidden,
           onChanged: (v) => onChanged(payload.copyWith(hidden: v)),
         ),

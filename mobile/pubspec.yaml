@@ -42,6 +42,18 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   # Mocking for unit/widget tests
   mocktail: ^1.0.0
+  # Generates the Android launcher icons from assets/icon/
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
+
+# Launcher icon: a scanner frame around a QR glyph on the teal gradient.
+# Regenerate with `dart run flutter_launcher_icons` after changing the source
+# images (drawn by tool/make_icon.py).
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: "assets/icon/icon.png"
+  adaptive_icon_background: "#0E7C8A"
+  adaptive_icon_foreground: "assets/icon/icon_foreground.png"

@@ -73,7 +73,7 @@ class _ShortLinkScreenState extends ConsumerState<ShortLinkScreen> {
     final created = _created;
 
     return Scaffold(
-      backgroundColor: c.cream,
+      backgroundColor: c.canvas,
       appBar: AppBar(title: const Text('Short link')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
@@ -91,7 +91,7 @@ class _ShortLinkScreenState extends ConsumerState<ShortLinkScreen> {
       children: [
         Text(
           'Paste a long link and get a short one you can share or print.',
-          style: TextStyle(color: c.brownMid, fontSize: 14),
+          style: TextStyle(color: c.inkMid, fontSize: 14),
         ),
         const SizedBox(height: 20),
         AppTextField(
@@ -103,7 +103,7 @@ class _ShortLinkScreenState extends ConsumerState<ShortLinkScreen> {
         const SizedBox(height: 24),
         PrimaryButton.solid(
           label: _working ? 'Working…' : 'Make short link',
-          color: c.brownDark,
+          color: c.inkDark,
           icon: Icons.link_rounded,
           onPressed: _canSubmit ? _shorten : null,
         ),
@@ -118,11 +118,11 @@ class _ShortLinkScreenState extends ConsumerState<ShortLinkScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Center(child: QrView(data: code.qrContent, color: c.brownDark)),
+        Center(child: QrView(data: code.qrContent, color: c.inkDark)),
         const SizedBox(height: 24),
         Text(
           'Your short link',
-          style: TextStyle(color: c.brownMid, fontWeight: FontWeight.w700),
+          style: TextStyle(color: c.inkMid, fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 8),
         Container(
@@ -130,7 +130,7 @@ class _ShortLinkScreenState extends ConsumerState<ShortLinkScreen> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: c.peachLight),
+            border: Border.all(color: c.tealLight),
           ),
           child: Row(
             children: [
@@ -138,14 +138,14 @@ class _ShortLinkScreenState extends ConsumerState<ShortLinkScreen> {
                 child: SelectableText(
                   shortUrl,
                   style: TextStyle(
-                    color: c.brownDark,
+                    color: c.inkDark,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
               IconButton(
                 tooltip: 'Copy',
-                icon: Icon(Icons.copy_rounded, color: c.coral),
+                icon: Icon(Icons.copy_rounded, color: c.accent),
                 onPressed: shortUrl.isEmpty ? null : () => _copy(shortUrl),
               ),
             ],
@@ -154,17 +154,17 @@ class _ShortLinkScreenState extends ConsumerState<ShortLinkScreen> {
         const SizedBox(height: 24),
         PrimaryButton.solid(
           label: 'Download the QR',
-          color: c.brownDark,
+          color: c.inkDark,
           icon: Icons.download_rounded,
           onPressed: () => showModalBottomSheet<void>(
             context: context,
-            backgroundColor: c.cream,
+            backgroundColor: c.canvas,
             shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
             ),
             builder: (_) => DownloadSheet(
               data: code.qrContent,
-              color: c.brownDark,
+              color: c.inkDark,
               fileName: 'qrsafe-${code.id}.png',
               label: code.label,
             ),
@@ -173,10 +173,10 @@ class _ShortLinkScreenState extends ConsumerState<ShortLinkScreen> {
         const SizedBox(height: 12),
         TextButton.icon(
           onPressed: _startOver,
-          icon: Icon(Icons.refresh_rounded, color: c.brownMid),
+          icon: Icon(Icons.refresh_rounded, color: c.inkMid),
           label: Text(
             'Shorten another link',
-            style: TextStyle(color: c.brownMid, fontWeight: FontWeight.w600),
+            style: TextStyle(color: c.inkMid, fontWeight: FontWeight.w600),
           ),
         ),
       ],

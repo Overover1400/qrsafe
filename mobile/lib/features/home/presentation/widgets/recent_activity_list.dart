@@ -22,7 +22,7 @@ class RecentActivityList extends ConsumerWidget {
         Text(
           'Recent activity',
           style: TextStyle(
-            color: c.brownDark,
+            color: c.inkDark,
             fontSize: 18,
             fontWeight: FontWeight.w800,
           ),
@@ -49,16 +49,16 @@ class _EmptyState extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: c.peachLight.withValues(alpha: 0.6)),
+        border: Border.all(color: c.tealLight.withValues(alpha: 0.6)),
       ),
       child: Column(
         children: [
-          Icon(Icons.history_rounded, size: 36, color: c.brownTint),
+          Icon(Icons.history_rounded, size: 36, color: c.inkTint),
           const SizedBox(height: 12),
           Text(
             'No scans yet',
             style: TextStyle(
-              color: c.brownMid,
+              color: c.inkMid,
               fontWeight: FontWeight.w700,
               fontSize: 15,
             ),
@@ -67,7 +67,7 @@ class _EmptyState extends StatelessWidget {
           Text(
             'Your scanned links will show up here.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: c.brownLight, fontSize: 13),
+            style: TextStyle(color: c.inkLight, fontSize: 13),
           ),
         ],
       ),
@@ -88,7 +88,7 @@ class _ActivityRow extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: c.peachLight.withValues(alpha: 0.5)),
+        border: Border.all(color: c.tealLight.withValues(alpha: 0.5)),
       ),
       child: Row(
         children: [
@@ -101,7 +101,7 @@ class _ActivityRow extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: c.brownDark,
+                    color: c.inkDark,
                     fontWeight: FontWeight.w600,
                   ),
                 ),

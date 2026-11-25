@@ -12,7 +12,7 @@ class QrView extends StatelessWidget {
   const QrView({
     super.key,
     required this.data,
-    this.color = const Color(0xFF3D2E1F),
+    this.color = const Color(0xFF0F3B3F),
     this.size = 220,
   });
 
@@ -54,7 +54,7 @@ class _Placeholder extends StatelessWidget {
       width: size,
       height: size,
       child: Center(
-        child: Icon(Icons.qr_code_2_rounded, size: size * 0.5, color: c.brownTint),
+        child: Icon(Icons.qr_code_2_rounded, size: size * 0.5, color: c.inkTint),
       ),
     );
   }

@@ -16,7 +16,7 @@ class EditDestinationDialog extends StatefulWidget {
     return showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: context.qrColors.cream,
+      backgroundColor: context.qrColors.canvas,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -55,7 +55,7 @@ class _EditDestinationDialogState extends State<EditDestinationDialog> {
           Text(
             'Change destination',
             style: TextStyle(
-              color: c.brownDark,
+              color: c.inkDark,
               fontSize: 18,
               fontWeight: FontWeight.w800,
             ),
@@ -63,7 +63,7 @@ class _EditDestinationDialogState extends State<EditDestinationDialog> {
           const SizedBox(height: 4),
           Text(
             'The QR stays the same — only where it points changes.',
-            style: TextStyle(color: c.brownLight, fontSize: 13),
+            style: TextStyle(color: c.inkLight, fontSize: 13),
           ),
           const SizedBox(height: 16),
           AppTextField(
@@ -74,7 +74,7 @@ class _EditDestinationDialogState extends State<EditDestinationDialog> {
           const SizedBox(height: 20),
           PrimaryButton.solid(
             label: 'Save destination',
-            color: c.brownDark,
+            color: c.inkDark,
             onPressed: () {
               final value = _controller.text.trim();
               if (value.isNotEmpty) Navigator.of(context).pop(value);

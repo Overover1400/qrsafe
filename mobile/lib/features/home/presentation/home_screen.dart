@@ -6,7 +6,7 @@ import '../../../core/theme/app_theme.dart';
 import 'widgets/recent_activity_list.dart';
 import 'widgets/scan_hero_button.dart';
 
-/// The peach-themed home screen: wordmark + settings gear, the scan hero, the
+/// The teal-themed home screen: wordmark + settings gear, the scan hero, the
 /// recent-activity list, and a bottom nav. "Scan" and "Account" route out;
 /// "History" is a placeholder for a later phase.
 class HomeScreen extends ConsumerWidget {
@@ -16,7 +16,7 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.qrColors;
     return Scaffold(
-      backgroundColor: c.cream,
+      backgroundColor: c.canvas,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
@@ -58,7 +58,7 @@ class _DocumentScanTile extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
           child: Row(
             children: [
-              Icon(Icons.document_scanner_rounded, color: c.coral),
+              Icon(Icons.document_scanner_rounded, color: c.accent),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -67,19 +67,19 @@ class _DocumentScanTile extends StatelessWidget {
                     Text(
                       'Scan a document',
                       style: TextStyle(
-                        color: c.brownDark,
+                        color: c.inkDark,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       'Photograph a page and save it as a PDF',
-                      style: TextStyle(color: c.brownLight, fontSize: 13),
+                      style: TextStyle(color: c.inkLight, fontSize: 13),
                     ),
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right_rounded, color: c.brownTint),
+              Icon(Icons.chevron_right_rounded, color: c.inkTint),
             ],
           ),
         ),
@@ -94,12 +94,12 @@ class _Header extends StatelessWidget {
     final c = context.qrColors;
     return Row(
       children: [
-        Icon(Icons.shield_rounded, color: c.peach, size: 28),
+        Icon(Icons.qr_code_scanner_rounded, color: c.teal, size: 28),
         const SizedBox(width: 8),
         Text(
           'QRSafe',
           style: TextStyle(
-            color: c.brownDark,
+            color: c.inkDark,
             fontSize: 24,
             fontWeight: FontWeight.w900,
           ),
@@ -107,7 +107,7 @@ class _Header extends StatelessWidget {
         const Spacer(),
         IconButton(
           tooltip: 'Settings',
-          icon: Icon(Icons.settings_rounded, color: c.brownMid),
+          icon: Icon(Icons.settings_rounded, color: c.inkMid),
           onPressed: () => context.push('/settings'),
         ),
       ],
@@ -123,8 +123,8 @@ class _BottomNav extends StatelessWidget {
       currentIndex: 0,
       type: BottomNavigationBarType.fixed,
       backgroundColor: Colors.white,
-      selectedItemColor: c.peach,
-      unselectedItemColor: c.brownLight,
+      selectedItemColor: c.teal,
+      unselectedItemColor: c.inkLight,
       showUnselectedLabels: true,
       onTap: (index) {
         switch (index) {

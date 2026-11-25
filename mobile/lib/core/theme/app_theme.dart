@@ -8,15 +8,15 @@ import 'app_colors.dart';
 @immutable
 class QRSafeColors extends ThemeExtension<QRSafeColors> {
   const QRSafeColors({
-    required this.peachLight,
-    required this.peachMid,
-    required this.peach,
-    required this.coral,
-    required this.cream,
-    required this.brownDark,
-    required this.brownMid,
-    required this.brownLight,
-    required this.brownTint,
+    required this.tealLight,
+    required this.tealMid,
+    required this.teal,
+    required this.accent,
+    required this.canvas,
+    required this.inkDark,
+    required this.inkMid,
+    required this.inkLight,
+    required this.inkTint,
     required this.safe,
     required this.safeBg,
     required this.caution,
@@ -25,18 +25,18 @@ class QRSafeColors extends ThemeExtension<QRSafeColors> {
     required this.dangerBg,
     required this.unknown,
     required this.unknownBg,
-    required this.peachGradient,
+    required this.tealGradient,
   });
 
-  final Color peachLight;
-  final Color peachMid;
-  final Color peach;
-  final Color coral;
-  final Color cream;
-  final Color brownDark;
-  final Color brownMid;
-  final Color brownLight;
-  final Color brownTint;
+  final Color tealLight;
+  final Color tealMid;
+  final Color teal;
+  final Color accent;
+  final Color canvas;
+  final Color inkDark;
+  final Color inkMid;
+  final Color inkLight;
+  final Color inkTint;
   final Color safe;
   final Color safeBg;
   final Color caution;
@@ -45,19 +45,19 @@ class QRSafeColors extends ThemeExtension<QRSafeColors> {
   final Color dangerBg;
   final Color unknown;
   final Color unknownBg;
-  final LinearGradient peachGradient;
+  final LinearGradient tealGradient;
 
   /// The default light QRSafe palette, built from [AppColors].
   static const light = QRSafeColors(
-    peachLight: AppColors.peachLight,
-    peachMid: AppColors.peachMid,
-    peach: AppColors.peach,
-    coral: AppColors.coral,
-    cream: AppColors.cream,
-    brownDark: AppColors.brownDark,
-    brownMid: AppColors.brownMid,
-    brownLight: AppColors.brownLight,
-    brownTint: AppColors.brownTint,
+    tealLight: AppColors.tealLight,
+    tealMid: AppColors.tealMid,
+    teal: AppColors.teal,
+    accent: AppColors.accent,
+    canvas: AppColors.canvas,
+    inkDark: AppColors.inkDark,
+    inkMid: AppColors.inkMid,
+    inkLight: AppColors.inkLight,
+    inkTint: AppColors.inkTint,
     safe: AppColors.safe,
     safeBg: AppColors.safeBg,
     caution: AppColors.caution,
@@ -66,20 +66,20 @@ class QRSafeColors extends ThemeExtension<QRSafeColors> {
     dangerBg: AppColors.dangerBg,
     unknown: AppColors.unknown,
     unknownBg: AppColors.unknownBg,
-    peachGradient: AppColors.peachGradient,
+    tealGradient: AppColors.tealGradient,
   );
 
   @override
   QRSafeColors copyWith({
-    Color? peachLight,
-    Color? peachMid,
-    Color? peach,
-    Color? coral,
-    Color? cream,
-    Color? brownDark,
-    Color? brownMid,
-    Color? brownLight,
-    Color? brownTint,
+    Color? tealLight,
+    Color? tealMid,
+    Color? teal,
+    Color? accent,
+    Color? canvas,
+    Color? inkDark,
+    Color? inkMid,
+    Color? inkLight,
+    Color? inkTint,
     Color? safe,
     Color? safeBg,
     Color? caution,
@@ -88,18 +88,18 @@ class QRSafeColors extends ThemeExtension<QRSafeColors> {
     Color? dangerBg,
     Color? unknown,
     Color? unknownBg,
-    LinearGradient? peachGradient,
+    LinearGradient? tealGradient,
   }) {
     return QRSafeColors(
-      peachLight: peachLight ?? this.peachLight,
-      peachMid: peachMid ?? this.peachMid,
-      peach: peach ?? this.peach,
-      coral: coral ?? this.coral,
-      cream: cream ?? this.cream,
-      brownDark: brownDark ?? this.brownDark,
-      brownMid: brownMid ?? this.brownMid,
-      brownLight: brownLight ?? this.brownLight,
-      brownTint: brownTint ?? this.brownTint,
+      tealLight: tealLight ?? this.tealLight,
+      tealMid: tealMid ?? this.tealMid,
+      teal: teal ?? this.teal,
+      accent: accent ?? this.accent,
+      canvas: canvas ?? this.canvas,
+      inkDark: inkDark ?? this.inkDark,
+      inkMid: inkMid ?? this.inkMid,
+      inkLight: inkLight ?? this.inkLight,
+      inkTint: inkTint ?? this.inkTint,
       safe: safe ?? this.safe,
       safeBg: safeBg ?? this.safeBg,
       caution: caution ?? this.caution,
@@ -108,7 +108,7 @@ class QRSafeColors extends ThemeExtension<QRSafeColors> {
       dangerBg: dangerBg ?? this.dangerBg,
       unknown: unknown ?? this.unknown,
       unknownBg: unknownBg ?? this.unknownBg,
-      peachGradient: peachGradient ?? this.peachGradient,
+      tealGradient: tealGradient ?? this.tealGradient,
     );
   }
 
@@ -116,15 +116,15 @@ class QRSafeColors extends ThemeExtension<QRSafeColors> {
   QRSafeColors lerp(ThemeExtension<QRSafeColors>? other, double t) {
     if (other is! QRSafeColors) return this;
     return QRSafeColors(
-      peachLight: Color.lerp(peachLight, other.peachLight, t)!,
-      peachMid: Color.lerp(peachMid, other.peachMid, t)!,
-      peach: Color.lerp(peach, other.peach, t)!,
-      coral: Color.lerp(coral, other.coral, t)!,
-      cream: Color.lerp(cream, other.cream, t)!,
-      brownDark: Color.lerp(brownDark, other.brownDark, t)!,
-      brownMid: Color.lerp(brownMid, other.brownMid, t)!,
-      brownLight: Color.lerp(brownLight, other.brownLight, t)!,
-      brownTint: Color.lerp(brownTint, other.brownTint, t)!,
+      tealLight: Color.lerp(tealLight, other.tealLight, t)!,
+      tealMid: Color.lerp(tealMid, other.tealMid, t)!,
+      teal: Color.lerp(teal, other.teal, t)!,
+      accent: Color.lerp(accent, other.accent, t)!,
+      canvas: Color.lerp(canvas, other.canvas, t)!,
+      inkDark: Color.lerp(inkDark, other.inkDark, t)!,
+      inkMid: Color.lerp(inkMid, other.inkMid, t)!,
+      inkLight: Color.lerp(inkLight, other.inkLight, t)!,
+      inkTint: Color.lerp(inkTint, other.inkTint, t)!,
       safe: Color.lerp(safe, other.safe, t)!,
       safeBg: Color.lerp(safeBg, other.safeBg, t)!,
       caution: Color.lerp(caution, other.caution, t)!,
@@ -133,7 +133,7 @@ class QRSafeColors extends ThemeExtension<QRSafeColors> {
       dangerBg: Color.lerp(dangerBg, other.dangerBg, t)!,
       unknown: Color.lerp(unknown, other.unknown, t)!,
       unknownBg: Color.lerp(unknownBg, other.unknownBg, t)!,
-      peachGradient: LinearGradient.lerp(peachGradient, other.peachGradient, t)!,
+      tealGradient: LinearGradient.lerp(tealGradient, other.tealGradient, t)!,
     );
   }
 }
@@ -144,7 +144,7 @@ extension QRSafeColorsX on BuildContext {
   QRSafeColors get qrColors => Theme.of(this).extension<QRSafeColors>()!;
 }
 
-/// Builds the app-wide [ThemeData]: cream surfaces, brown text, peach seed,
+/// Builds the app-wide [ThemeData]: canvas surfaces, brown text, teal seed,
 /// and the [QRSafeColors] extension attached.
 class AppTheme {
   const AppTheme._();
@@ -152,19 +152,19 @@ class AppTheme {
   static ThemeData light() {
     final colorScheme =
         ColorScheme.fromSeed(
-          seedColor: AppColors.peach,
+          seedColor: AppColors.teal,
           brightness: Brightness.light,
         ).copyWith(
-          surface: AppColors.cream,
-          primary: AppColors.peach,
+          surface: AppColors.canvas,
+          primary: AppColors.teal,
           onPrimary: Colors.white,
-          onSurface: AppColors.brownDark,
+          onSurface: AppColors.inkDark,
         );
 
     final base = ThemeData(
       useMaterial3: true,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: AppColors.cream,
+      scaffoldBackgroundColor: AppColors.canvas,
       // System default font (Roboto on Android, San Francisco on iOS).
       fontFamily: null,
       extensions: const [QRSafeColors.light],
@@ -172,18 +172,18 @@ class AppTheme {
 
     return base.copyWith(
       textTheme: base.textTheme.apply(
-        bodyColor: AppColors.brownDark,
-        displayColor: AppColors.brownDark,
+        bodyColor: AppColors.inkDark,
+        displayColor: AppColors.inkDark,
       ),
       appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.cream,
-        foregroundColor: AppColors.brownDark,
+        backgroundColor: AppColors.canvas,
+        foregroundColor: AppColors.inkDark,
         elevation: 0,
         centerTitle: false,
       ),
       snackBarTheme: const SnackBarThemeData(
-        backgroundColor: AppColors.peachMid,
-        contentTextStyle: TextStyle(color: AppColors.brownDark),
+        backgroundColor: AppColors.tealMid,
+        contentTextStyle: TextStyle(color: AppColors.inkDark),
         behavior: SnackBarBehavior.floating,
       ),
     );

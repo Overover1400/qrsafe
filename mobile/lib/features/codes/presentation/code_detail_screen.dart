@@ -30,18 +30,18 @@ class CodeDetailScreen extends ConsumerWidget {
     final code = state.valueOrNull;
 
     return Scaffold(
-      backgroundColor: c.cream,
+      backgroundColor: c.canvas,
       appBar: AppBar(
         title: const Text('Code'),
         actions: [
           IconButton(
             tooltip: 'Edit label',
-            icon: Icon(Icons.edit_rounded, color: c.brownMid),
+            icon: Icon(Icons.edit_rounded, color: c.inkMid),
             onPressed: code == null ? null : () => _editLabel(context, ref, code),
           ),
           IconButton(
             tooltip: 'Delete',
-            icon: Icon(Icons.delete_outline_rounded, color: c.coral),
+            icon: Icon(Icons.delete_outline_rounded, color: c.accent),
             onPressed: code == null ? null : () => _confirmDelete(context, ref),
           ),
         ],
@@ -67,7 +67,7 @@ class CodeDetailScreen extends ConsumerWidget {
     final result = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: context.qrColors.cream,
+        backgroundColor: context.qrColors.canvas,
         title: const Text('Edit label'),
         content: AppTextField(label: 'Label', controller: controller),
         actions: [
@@ -97,7 +97,7 @@ class CodeDetailScreen extends ConsumerWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: context.qrColors.cream,
+        backgroundColor: context.qrColors.canvas,
         title: const Text('Delete code?'),
         content: const Text('This permanently removes the code and its link.'),
         actions: [
@@ -107,7 +107,7 @@ class CodeDetailScreen extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text('Delete', style: TextStyle(color: context.qrColors.coral)),
+            child: Text('Delete', style: TextStyle(color: context.qrColors.accent)),
           ),
         ],
       ),
@@ -148,13 +148,13 @@ class _Body extends ConsumerWidget {
               borderRadius: BorderRadius.circular(28),
               boxShadow: [
                 BoxShadow(
-                  color: c.peach.withValues(alpha: 0.2),
+                  color: c.teal.withValues(alpha: 0.2),
                   blurRadius: 24,
                   offset: const Offset(0, 12),
                 ),
               ],
             ),
-            child: QrView(data: code.qrContent, color: c.brownDark, size: 220),
+            child: QrView(data: code.qrContent, color: c.inkDark, size: 220),
           ),
         ),
         const SizedBox(height: 24),
@@ -173,17 +173,17 @@ class _Body extends ConsumerWidget {
         const SizedBox(height: 24),
         PrimaryButton.solid(
           label: 'Download',
-          color: c.brownDark,
+          color: c.inkDark,
           icon: Icons.download_rounded,
           onPressed: () => showModalBottomSheet<void>(
             context: context,
-            backgroundColor: c.cream,
+            backgroundColor: c.canvas,
             shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
             ),
             builder: (_) => DownloadSheet(
               data: code.qrContent,
-              color: c.brownDark,
+              color: c.inkDark,
               fileName: 'qrsafe-${code.id}.png',
               label: code.label,
             ),
@@ -217,13 +217,13 @@ class _MetaRow extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(color: c.brownLight, fontSize: 12)),
+          Text(label, style: TextStyle(color: c.inkLight, fontSize: 12)),
           const SizedBox(height: 2),
           Text(
             value,
             maxLines: collapsed ? 2 : null,
             overflow: collapsed ? TextOverflow.ellipsis : null,
-            style: TextStyle(color: c.brownDark, fontWeight: FontWeight.w600),
+            style: TextStyle(color: c.inkDark, fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -251,20 +251,20 @@ class _DestinationRow extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Destination', style: TextStyle(color: c.brownLight, fontSize: 12)),
+                Text('Destination', style: TextStyle(color: c.inkLight, fontSize: 12)),
                 const SizedBox(height: 2),
                 Text(
                   destination,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: c.brownDark, fontWeight: FontWeight.w600),
+                  style: TextStyle(color: c.inkDark, fontWeight: FontWeight.w600),
                 ),
               ],
             ),
           ),
           TextButton(
             onPressed: () => _change(context, ref),
-            child: Text('Change', style: TextStyle(color: c.coral, fontWeight: FontWeight.w700)),
+            child: Text('Change', style: TextStyle(color: c.accent, fontWeight: FontWeight.w700)),
           ),
         ],
       ),
@@ -300,7 +300,7 @@ class _ScanCount extends ConsumerWidget {
     return analytics.maybeWhen(
       data: (a) => Text(
         '${a.totalScans} scan${a.totalScans == 1 ? '' : 's'} · ${a.uniqueVisitors} unique',
-        style: TextStyle(color: c.brownLight, fontSize: 13),
+        style: TextStyle(color: c.inkLight, fontSize: 13),
       ),
       orElse: () => const SizedBox.shrink(),
     );

@@ -30,7 +30,7 @@ class ColorPickerRow extends StatelessWidget {
                 color: Color(value),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: value == selected ? c.brownDark : Colors.transparent,
+                  color: value == selected ? c.inkDark : Colors.transparent,
                   width: 3,
                 ),
               ),

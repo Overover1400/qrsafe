@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 
-/// Full-screen branded loading state: the QRSafe wordmark over a peach spinner
-/// on the cream background. Shown while auth bootstraps.
+/// Full-screen branded loading state: the QRSafe wordmark over a teal spinner
+/// on the canvas background. Shown while auth bootstraps.
 class AppLoader extends StatelessWidget {
   const AppLoader({super.key, this.message});
 
@@ -14,26 +14,26 @@ class AppLoader extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = context.qrColors;
     return Scaffold(
-      backgroundColor: c.cream,
+      backgroundColor: c.canvas,
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.shield_rounded, color: c.peach, size: 56),
+            Icon(Icons.shield_rounded, color: c.teal, size: 56),
             const SizedBox(height: 12),
             Text(
               'QRSafe',
               style: TextStyle(
-                color: c.brownDark,
+                color: c.inkDark,
                 fontSize: 28,
                 fontWeight: FontWeight.w900,
               ),
             ),
             const SizedBox(height: 28),
-            CircularProgressIndicator(color: c.peach),
+            CircularProgressIndicator(color: c.teal),
             if (message != null) ...[
               const SizedBox(height: 16),
-              Text(message!, style: TextStyle(color: c.brownLight)),
+              Text(message!, style: TextStyle(color: c.inkLight)),
             ],
           ],
         ),
