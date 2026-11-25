@@ -100,31 +100,42 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
     );
   }
 
+  /// The bar is a child of a [Stack] with [StackFit.expand], so it is handed
+  /// the whole screen: without [Align] the Row centres itself vertically and
+  /// lands on top of the scan window. The title is centred against the screen
+  /// rather than against the space beside the close button, which is why this
+  /// is a Stack and not a Row with spacers.
   Widget _topBar(BuildContext context) {
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          children: [
-            _circleButton(
-              icon: Icons.close_rounded,
-              onTap: () => Navigator.of(context).maybePop(),
-            ),
-            const Spacer(),
-            const Expanded(
-              flex: 6,
-              child: Text(
-                'Point at a QR code',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: SizedBox(
+          height: 64,
+          child: Stack(
+            children: [
+              const Center(
+                child: Text(
+                  'Point at a QR code',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-            ),
-            const Spacer(),
-          ],
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 12),
+                  child: _circleButton(
+                    icon: Icons.close_rounded,
+                    onTap: () => Navigator.of(context).maybePop(),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

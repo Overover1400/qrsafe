@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
+import '../qr/qr_image.dart';
 import '../theme/app_theme.dart';
 
 /// Renders [data] as a QR code on a white square, in the given foreground
@@ -27,6 +28,9 @@ class QrView extends StatelessWidget {
     return QrImageView(
       data: data,
       version: QrVersions.auto,
+      // Same level as the PNG/SVG/PDF export, so what she sees is what the
+      // file contains.
+      errorCorrectionLevel: kQrErrorCorrection,
       size: size,
       backgroundColor: Colors.white,
       eyeStyle: QrEyeStyle(eyeShape: QrEyeShape.square, color: color),

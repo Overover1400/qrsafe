@@ -1,60 +1,89 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 
-import '../../../core/theme/app_theme.dart';
+import '../../../core/qr/qr_export_formats.dart';
 import '../../../core/qr/qr_image.dart';
+import '../../../core/theme/app_theme.dart';
 import '../data/qr_export_service.dart';
 
-/// Bottom sheet offering download/share of the rendered QR. PNG works in v1;
-/// SVG and PDF are shown disabled ("Coming soon"). Renders the PNG bytes on
-/// demand from [data]/[color] via [renderQrPng].
+/// The file formats the download sheet can produce.
+enum QrExportFormat { png, svg, pdf }
+
+/// Bottom sheet offering download/share of the rendered QR in PNG, SVG or PDF.
+///
+/// Every option follows the same path: build the bytes, close the sheet, write
+/// the file, then open the share sheet. The sheet is closed *before* any
+/// message is shown, because a SnackBar raised while the sheet is open is drawn
+/// behind it and the tap looks like it did nothing.
 class DownloadSheet extends StatelessWidget {
   const DownloadSheet({
     super.key,
     required this.data,
     required this.color,
     required this.fileName,
+    this.label,
     this.exporter = const QrExportService(),
   });
 
   final String data;
   final Color color;
   final String fileName;
+
+  /// Printed under the QR in the PDF export. Optional.
+  final String? label;
+
   final QrExportService exporter;
 
-  Future<void> _download(BuildContext context) async {
+  /// Base name without an extension, so each format can add its own.
+  String get _baseName =>
+      fileName.replaceAll(RegExp(r'\.(png|svg|pdf)$', caseSensitive: false), '');
+
+  Future<(Uint8List?, String, String)> _build(QrExportFormat format) async {
+    switch (format) {
+      case QrExportFormat.png:
+        return (
+          await renderQrPng(data, color: color),
+          '$_baseName.png',
+          'image/png',
+        );
+      case QrExportFormat.svg:
+        final svg = renderQrSvg(data, color: color);
+        return (
+          svg == null ? null : Uint8List.fromList(utf8.encode(svg)),
+          '$_baseName.svg',
+          'image/svg+xml',
+        );
+      case QrExportFormat.pdf:
+        return (
+          await renderQrPdf(data, color: color, label: label),
+          '$_baseName.pdf',
+          'application/pdf',
+        );
+    }
+  }
+
+  Future<void> _export(BuildContext context, QrExportFormat format) async {
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
-    final bytes = await renderQrPng(data, color: color);
+
+    final (bytes, name, mimeType) = await _build(format);
+    if (navigator.canPop()) navigator.pop();
+
     if (bytes == null) {
       messenger.showSnackBar(
-        const SnackBar(content: Text("Nothing to export yet.")),
+        const SnackBar(content: Text("This code can't be exported.")),
       );
       return;
     }
     try {
-      // Save a copy to app storage, then open the share sheet so the user can
-      // route the PNG to Files / Photos / another app. App-private storage
-      // isn't visible on its own, so sharing is how the image leaves the app.
-      await exporter.saveToDownloads(bytes, fileName);
-      if (navigator.canPop()) navigator.pop(); // dismiss the sheet first
-      await exporter.share(bytes, fileName);
+      await exporter.saveAndShare(bytes, name, mimeType: mimeType);
     } catch (_) {
       messenger.showSnackBar(
-        const SnackBar(content: Text("Couldn't save the image.")),
+        const SnackBar(content: Text("Couldn't save the file.")),
       );
     }
-  }
-
-  Future<void> _share(BuildContext context) async {
-    final messenger = ScaffoldMessenger.of(context);
-    final bytes = await renderQrPng(data, color: color);
-    if (bytes == null) {
-      messenger.showSnackBar(
-        const SnackBar(content: Text("Nothing to export yet.")),
-      );
-      return;
-    }
-    await exporter.share(bytes, fileName);
   }
 
   @override
@@ -81,25 +110,19 @@ class DownloadSheet extends StatelessWidget {
               icon: Icons.image_rounded,
               title: 'PNG image',
               subtitle: 'High-resolution, ready to print',
-              onTap: () => _download(context),
+              onTap: () => _export(context, QrExportFormat.png),
             ),
             _Option(
-              icon: Icons.share_rounded,
-              title: 'Share',
-              subtitle: 'Send to another app',
-              onTap: () => _share(context),
-            ),
-            const _Option(
               icon: Icons.code_rounded,
               title: 'SVG vector',
-              subtitle: 'Coming soon',
-              onTap: null,
+              subtitle: 'Stays sharp at any size',
+              onTap: () => _export(context, QrExportFormat.svg),
             ),
-            const _Option(
+            _Option(
               icon: Icons.picture_as_pdf_rounded,
               title: 'PDF document',
-              subtitle: 'Coming soon',
-              onTap: null,
+              subtitle: 'One A4 page, ready to print',
+              onTap: () => _export(context, QrExportFormat.pdf),
             ),
           ],
         ),
@@ -130,7 +153,10 @@ class _Option extends StatelessWidget {
       child: ListTile(
         contentPadding: EdgeInsets.zero,
         leading: Icon(icon, color: c.coral),
-        title: Text(title, style: TextStyle(color: c.brownDark, fontWeight: FontWeight.w600)),
+        title: Text(
+          title,
+          style: TextStyle(color: c.brownDark, fontWeight: FontWeight.w600),
+        ),
         subtitle: Text(subtitle, style: TextStyle(color: c.brownLight)),
         onTap: onTap,
       ),

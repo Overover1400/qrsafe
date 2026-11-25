@@ -31,6 +31,8 @@ dependencies:
   path_provider: ^2.1.0
   # Share the rendered QR image to other apps
   share_plus: ^10.0.0
+  # Pure-Dart PDF writer for the print-ready export
+  pdf: ^3.11.0
 
 dev_dependencies:
   flutter_test:

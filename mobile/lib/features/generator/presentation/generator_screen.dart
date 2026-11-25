@@ -64,6 +64,7 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
           data: code.qrContent,
           color: Color(state.color),
           fileName: 'qrsafe-${code.id}.png',
+          label: state.label,
         ),
       );
       if (!mounted) return;

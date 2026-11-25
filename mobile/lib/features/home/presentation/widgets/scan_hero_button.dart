@@ -17,6 +17,9 @@ class ScanHeroButton extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(28),
         child: Ink(
+          // Fill the available width; without this the card shrink-wraps to
+          // its text and sits left of centre.
+          width: double.infinity,
           decoration: BoxDecoration(
             gradient: context.qrColors.peachGradient,
             borderRadius: BorderRadius.circular(28),

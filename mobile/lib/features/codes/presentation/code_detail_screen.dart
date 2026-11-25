@@ -185,6 +185,7 @@ class _Body extends ConsumerWidget {
               data: code.qrContent,
               color: c.brownDark,
               fileName: 'qrsafe-${code.id}.png',
+              label: code.label,
             ),
           ),
         ),
