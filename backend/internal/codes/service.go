@@ -23,7 +23,8 @@ const (
 
 // Service-level sentinel errors, mapped to HTTP status codes by the handler.
 var (
-	ErrDynamicUnsupported   = errors.New("dynamic codes are only supported for url type")
+	ErrDynamicUnsupported   = errors.New("dynamic codes are only supported for url and multi types")
+	ErrMultiItemsRequired   = errors.New("a multi-link code needs at least one link or note")
 	ErrDynamicURLRequired   = errors.New("dynamic url code requires payload.url")
 	ErrNotDynamic           = errors.New("code is not dynamic")
 	ErrSlugGenerationFailed = errors.New("could not generate a unique slug")
@@ -104,7 +105,12 @@ type CreateInput struct {
 // on collision), uses payload.url as the initial destination, and writes the
 // codes + dynamic_codes rows in one transaction.
 func (s *Service) Create(ctx context.Context, in CreateInput) (*Code, error) {
-	if in.IsDynamic && in.Type != string(TypeURL) {
+	// A multi-link code only exists as a hosted page, so it is dynamic whatever
+	// the client asked for.
+	if in.Type == string(TypeMulti) {
+		in.IsDynamic = true
+	}
+	if in.IsDynamic && in.Type != string(TypeURL) && in.Type != string(TypeMulti) {
 		return nil, ErrDynamicUnsupported
 	}
 
@@ -123,12 +129,27 @@ func (s *Service) Create(ctx context.Context, in CreateInput) (*Code, error) {
 		return c, nil
 	}
 
-	dest, ok := extractURL(in.Payload)
-	if !ok {
-		return nil, ErrDynamicURLRequired
+	var dest string
+	if in.Type == string(TypeMulti) {
+		p, ok := ParseMulti(in.Payload)
+		if !ok {
+			return nil, ErrMultiItemsRequired
+		}
+		// The page itself is the destination; this is only the fallback stored
+		// in dynamic_codes, and it may legitimately be empty for a page of
+		// notes with no links at all.
+		dest = p.FirstURL()
+	} else {
+		d, ok := extractURL(in.Payload)
+		if !ok {
+			return nil, ErrDynamicURLRequired
+		}
+		dest = d
 	}
-	if err := s.guardDestination(ctx, dest); err != nil {
-		return nil, err
+	if dest != "" {
+		if err := s.guardDestination(ctx, dest); err != nil {
+			return nil, err
+		}
 	}
 
 	for attempt := 1; attempt <= maxSlugAttempts; attempt++ {

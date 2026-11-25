@@ -216,6 +216,27 @@ func (r *Repository) ResolveSlug(ctx context.Context, slug string) (destination 
 	return destination, codeID, nil
 }
 
+// ResolveSlugTarget resolves a slug to its destination together with the owning
+// code's type and payload, so the public handler can tell a redirect from a
+// multi-link page in a single round trip.
+func (r *Repository) ResolveSlugTarget(ctx context.Context, slug string) (*Target, error) {
+	const q = `
+		SELECT d.destination, d.code_id, c.type, c.payload
+		FROM dynamic_codes d
+		JOIN codes c ON c.id = d.code_id
+		WHERE d.slug = $1`
+	var t Target
+	err := r.db.QueryRow(ctx, q, slug).
+		Scan(&t.Destination, &t.CodeID, &t.Type, &t.Payload)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		return nil, fmt.Errorf("resolving slug target: %w", err)
+	}
+	return &t, nil
+}
+
 // InsertScanEvent appends a scan record and populates its generated fields.
 func (r *Repository) InsertScanEvent(ctx context.Context, e *ScanEvent) error {
 	const q = `

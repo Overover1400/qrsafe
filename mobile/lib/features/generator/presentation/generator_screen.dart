@@ -120,6 +120,10 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
             Center(
               child: LiveQrPreview(data: _previewData, color: Color(state.color)),
             ),
+            if (state.isMultiLink) ...[
+              const SizedBox(height: 12),
+              _MultiLinkNote(count: state.filledPayloads.length),
+            ],
             const SizedBox(height: 24),
             PayloadForm(
               payload: state.payload,
@@ -179,6 +183,39 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
     EmailPayload _ => 'Enter a recipient to continue',
     TextPayload _ => 'Enter some text to continue',
   };
+}
+
+/// Shown once a second tab has content, so saving several tabs at once is
+/// never a surprise.
+class _MultiLinkNote extends StatelessWidget {
+  const _MultiLinkNote({required this.count});
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.qrColors;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: c.peachLight),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.auto_awesome_motion_rounded, size: 20, color: c.coral),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              '$count tabs filled. Saving makes one QR that opens a page with '
+              'all of them.',
+              style: TextStyle(color: c.brownMid, fontSize: 13),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _SectionLabel extends StatelessWidget {

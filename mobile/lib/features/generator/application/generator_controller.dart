@@ -4,6 +4,7 @@ import '../../codes/application/codes_list_controller.dart';
 import '../../codes/application/codes_providers.dart';
 import '../../codes/data/code_models.dart';
 import '../data/code_payload.dart';
+import '../data/multi_link.dart';
 import '../data/payload_encoder.dart';
 
 /// Immutable form state for the generator: the selected [type], a separate
@@ -42,8 +43,20 @@ class GeneratorState {
   /// The payload for the currently selected type.
   CodePayload get payload => payloads[type]!;
 
-  /// Whether the current form is complete enough to save.
-  bool get isValid => payload.isValid;
+  /// Every tab the user has filled in, in tab order.
+  List<CodePayload> get filledPayloads => [
+    for (final t in CodeType.values)
+      if (payloads[t]!.isValid) payloads[t]!,
+  ];
+
+  /// Whether anything at all can be saved. Deliberately not limited to the
+  /// visible tab: with two tabs filled, Save stays live while she looks at an
+  /// empty third one.
+  bool get isValid => filledPayloads.isNotEmpty;
+
+  /// More than one filled tab turns the save into a hosted multi-link page
+  /// instead of five separate codes.
+  bool get isMultiLink => filledPayloads.length > 1;
 
   /// The string that would be encoded into the QR for a static code (the live
   /// preview always shows this literal content).
@@ -111,12 +124,31 @@ class GeneratorController extends Notifier<GeneratorState> {
   /// list, and returns it. Throws the typed API exception on failure.
   Future<Code> save() async {
     final s = state;
-    final created = await ref.read(codesApiProvider).create(
-      type: s.type,
-      payload: s.payload.toJson(),
-      label: s.label.trim().isEmpty ? null : s.label.trim(),
-      isDynamic: s.isDynamic && s.type.supportsDynamic,
-    );
+    final label = s.label.trim();
+    final filled = s.filledPayloads;
+    final api = ref.read(codesApiProvider);
+
+    final Code created;
+    if (filled.length > 1) {
+      // Several tabs filled: one QR that opens a page holding all of them.
+      created = await api.createMulti(
+        items: [
+          for (final item in buildMultiLinkItems(filled)) item.toJson(),
+        ],
+        title: label.isEmpty ? null : label,
+        label: label.isEmpty ? 'Multi-link' : label,
+      );
+    } else {
+      // Save the one filled tab, which need not be the visible one.
+      final payload = filled.isEmpty ? s.payload : filled.first;
+      created = await api.create(
+        type: payload.type,
+        payload: payload.toJson(),
+        label: label.isEmpty ? null : label,
+        isDynamic: s.isDynamic && payload.type.supportsDynamic,
+      );
+    }
+
     ref.read(codesListControllerProvider.notifier).optimisticallyAddCode(created);
     return created;
   }

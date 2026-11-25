@@ -57,6 +57,31 @@ class CodesApi {
     return Code.fromEnvelope(res.data ?? const {});
   }
 
+  /// `POST /api/v1/codes` with type `multi` → a hosted page carrying several
+  /// links behind one QR. Multi codes are always dynamic server-side, so the
+  /// response includes the slug the QR has to encode.
+  Future<Code> createMulti({
+    required List<Map<String, dynamic>> items,
+    String? title,
+    String? label,
+  }) async {
+    final res = await mapDioErrors(
+      () => _dio.post<Map<String, dynamic>>(
+        '/api/v1/codes',
+        data: {
+          'type': 'multi',
+          'payload': {
+            'title': ?(title != null && title.isNotEmpty ? title : null),
+            'items': items,
+          },
+          'label': ?(label != null && label.isNotEmpty ? label : null),
+          'is_dynamic': true,
+        },
+      ),
+    );
+    return Code.fromEnvelope(res.data ?? const {});
+  }
+
   /// `PATCH /api/v1/codes/{id}` → update the label and/or (dynamic) destination.
   Future<Code> update(
     String id, {

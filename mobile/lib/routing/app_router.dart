@@ -5,10 +5,12 @@ import 'package:go_router/go_router.dart';
 import '../features/auth/application/auth_controller.dart';
 import '../features/codes/presentation/code_detail_screen.dart';
 import '../features/codes/presentation/codes_list_screen.dart';
+import '../features/document/presentation/document_scan_screen.dart';
 import '../features/generator/presentation/generator_screen.dart';
 import '../features/home/presentation/home_screen.dart';
 import '../features/scan/presentation/scanner_screen.dart';
 import '../features/settings/presentation/settings_screen.dart';
+import '../features/shortlink/presentation/short_link_screen.dart';
 import '../features/splash/presentation/splash_screen.dart';
 
 /// Provides the app's [GoRouter].
@@ -43,6 +45,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/settings', builder: (_, _) => const SettingsScreen()),
       GoRoute(path: '/create', builder: (_, _) => const GeneratorScreen()),
       GoRoute(path: '/codes', builder: (_, _) => const CodesListScreen()),
+      GoRoute(path: '/link', builder: (_, _) => const ShortLinkScreen()),
+      GoRoute(
+        path: '/document',
+        builder: (_, _) => const DocumentScanScreen(),
+      ),
       GoRoute(
         path: '/codes/:id',
         builder: (_, state) =>

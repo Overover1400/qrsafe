@@ -45,7 +45,7 @@ func NewCodesHandler(svc CodesService, baseURL string) *CodesHandler {
 }
 
 type createCodeRequest struct {
-	Type      string          `json:"type" validate:"required,oneof=url wifi vcard email text sms"`
+	Type      string          `json:"type" validate:"required,oneof=url wifi vcard email text sms multi"`
 	Payload   json.RawMessage `json:"payload" validate:"required"`
 	Label     *string         `json:"label" validate:"omitempty,max=100"`
 	IsDynamic bool            `json:"is_dynamic"`

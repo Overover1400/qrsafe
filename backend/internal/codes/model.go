@@ -22,6 +22,9 @@ const (
 	TypeEmail CodeType = "email"
 	TypeText  CodeType = "text"
 	TypeSMS   CodeType = "sms"
+	// TypeMulti is a hosted page offering several links behind one QR. It is
+	// always dynamic: the QR encodes /r/{slug} and the page is rendered there.
+	TypeMulti CodeType = "multi"
 )
 
 // Code is a row in the codes table. Payload is stored as JSONB; its inner shape

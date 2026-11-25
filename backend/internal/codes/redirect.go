@@ -22,10 +22,23 @@ const (
 	redirectTTL = time.Hour
 )
 
-// CachedTarget is the JSON value stored in Redis for a slug.
+// CachedTarget is the JSON value stored in Redis for a slug. Type and Payload
+// were added for multi-link codes; entries cached before that decode with an
+// empty Type, which reads as a plain redirect.
 type CachedTarget struct {
-	Destination string `json:"destination"`
-	CodeID      string `json:"code_id"`
+	Destination string          `json:"destination"`
+	CodeID      string          `json:"code_id"`
+	Type        string          `json:"type,omitempty"`
+	Payload     json.RawMessage `json:"payload,omitempty"`
+}
+
+// Target is what a slug resolves to: the destination for a redirect, plus the
+// code's type and payload so a multi-link code can be rendered as a page.
+type Target struct {
+	Destination string
+	CodeID      uuid.UUID
+	Type        string
+	Payload     json.RawMessage
 }
 
 // Cache is the redirect cache surface. Backed by Redis in production; the
@@ -87,7 +100,7 @@ func (c *RedisCache) Invalidate(ctx context.Context, slug string) error {
 
 // slugResolver is the persistence surface the redirect service needs.
 type slugResolver interface {
-	ResolveSlug(ctx context.Context, slug string) (string, uuid.UUID, error)
+	ResolveSlugTarget(ctx context.Context, slug string) (*Target, error)
 	InsertScanEvent(ctx context.Context, e *ScanEvent) error
 }
 
@@ -108,24 +121,42 @@ func NewRedirectService(repo slugResolver, cache Cache, log *slog.Logger) *Redir
 // falling back to Postgres (caching the result). It returns ErrNotFound for an
 // unknown slug. A cache error is logged and treated as a miss, not a failure.
 func (s *RedirectService) Resolve(ctx context.Context, slug string) (string, error) {
+	t, err := s.ResolveTarget(ctx, slug)
+	if err != nil {
+		return "", err
+	}
+	return t.Destination, nil
+}
+
+// ResolveTarget returns everything the public endpoint needs for slug: the
+// destination, and for a multi-link code its type and payload so the page can
+// be rendered instead of redirecting. Redis first, Postgres second (caching the
+// result). It returns ErrNotFound for an unknown slug; a cache error is logged
+// and treated as a miss, not a failure.
+func (s *RedirectService) ResolveTarget(ctx context.Context, slug string) (*Target, error) {
 	if t, hit, err := s.cache.Lookup(ctx, slug); err != nil {
 		s.log.Warn("redirect cache lookup failed",
 			slog.String("slug", slug), slog.String("error", err.Error()))
 	} else if hit {
-		return t.Destination, nil
+		return &Target{Destination: t.Destination, Type: t.Type, Payload: t.Payload}, nil
 	}
 
-	dest, codeID, err := s.repo.ResolveSlug(ctx, slug)
+	target, err := s.repo.ResolveSlugTarget(ctx, slug)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	s.log.Info("redirect cache miss", slog.String("slug", slug))
-	if err := s.cache.Store(ctx, slug, CachedTarget{Destination: dest, CodeID: codeID.String()}); err != nil {
+	if err := s.cache.Store(ctx, slug, CachedTarget{
+		Destination: target.Destination,
+		CodeID:      target.CodeID.String(),
+		Type:        target.Type,
+		Payload:     target.Payload,
+	}); err != nil {
 		s.log.Warn("redirect cache store failed",
 			slog.String("slug", slug), slog.String("error", err.Error()))
 	}
-	return dest, nil
+	return target, nil
 }
 
 // RecordScan appends a scan event. It is meant to be called from a fire-and-

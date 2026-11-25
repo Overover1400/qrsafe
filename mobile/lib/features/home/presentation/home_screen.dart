@@ -26,6 +26,8 @@ class HomeScreen extends ConsumerWidget {
               _Header(),
               const SizedBox(height: 24),
               ScanHeroButton(onTap: () => context.push('/scan')),
+              const SizedBox(height: 16),
+              _DocumentScanTile(onTap: () => context.push('/document')),
               const SizedBox(height: 28),
               const RecentActivityList(),
             ],
@@ -33,6 +35,55 @@ class HomeScreen extends ConsumerWidget {
         ),
       ),
       bottomNavigationBar: _BottomNav(),
+    );
+  }
+}
+
+/// Secondary action under the hero: photograph a paper document and keep it as
+/// a PDF. Kept off the bottom nav, which is already full.
+class _DocumentScanTile extends StatelessWidget {
+  const _DocumentScanTile({required this.onTap});
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.qrColors;
+    return Material(
+      color: Colors.white.withValues(alpha: 0.7),
+      borderRadius: BorderRadius.circular(22),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(22),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          child: Row(
+            children: [
+              Icon(Icons.document_scanner_rounded, color: c.coral),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Scan a document',
+                      style: TextStyle(
+                        color: c.brownDark,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Photograph a page and save it as a PDF',
+                      style: TextStyle(color: c.brownLight, fontSize: 13),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right_rounded, color: c.brownTint),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
@@ -82,7 +133,7 @@ class _BottomNav extends StatelessWidget {
           case 2:
             context.push('/scan');
           case 3:
-            context.push('/codes');
+            context.push('/link');
           case 4:
             context.push('/settings');
           case 0:
@@ -103,10 +154,11 @@ class _BottomNav extends StatelessWidget {
           icon: Icon(Icons.qr_code_scanner_rounded),
           label: 'Scan',
         ),
-        // History icon kept, relabeled to "Codes" → the dashboard (/codes).
+        // The saved-codes dashboard moved to Settings; this slot is the
+        // short-link tool, which is what she reaches for daily.
         BottomNavigationBarItem(
-          icon: Icon(Icons.history_rounded),
-          label: 'Codes',
+          icon: Icon(Icons.link_rounded),
+          label: 'Link',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.person_rounded),
