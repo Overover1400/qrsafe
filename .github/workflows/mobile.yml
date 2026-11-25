@@ -72,9 +72,53 @@ jobs:
         # emulator-localhost default in lib/core/config/env.dart.
         run: flutter build apk --debug --dart-define=API_BASE_URL=https://api.qrsafe.flemby.com
 
+      - name: Build per-ABI APKs
+        # The universal APK carries every architecture and lands near 90 MB,
+        # which is too big to send over Telegram and slow to download on a
+        # phone. The arm64 slice is the one real phones need.
+        run: flutter build apk --debug --split-per-abi --dart-define=API_BASE_URL=https://api.qrsafe.flemby.com
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: qrsafe-debug-apk
-          path: mobile/build/app/outputs/flutter-apk/app-debug.apk
+          path: |
+            mobile/build/app/outputs/flutter-apk/app-debug.apk
+            mobile/build/app/outputs/flutter-apk/app-arm64-v8a-debug.apk
           retention-days: 30
+
+  publish-apk:
+    name: Publish APK to the download page
+    needs: build-apk
+    runs-on: ubuntu-latest
+    # Real pushes to main only — never a PR from a fork.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Download APK artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: qrsafe-debug-apk
+          path: apk
+
+      - name: Add server to known_hosts
+        run: |
+          mkdir -p "$HOME/.ssh"
+          chmod 700 "$HOME/.ssh"
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_KNOWN_HOSTS }}" > "$HOME/.ssh/known_hosts"
+          ssh-keyscan -t ed25519 193.181.211.239 >> "$HOME/.ssh/known_hosts" 2>/dev/null || true
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Install deploy SSH key
+        run: |
+          install -m 600 /dev/stdin "$HOME/.ssh/deploy_key" <<< "${{ secrets.DEPLOY_SSH_KEY }}"
+
+      - name: Rsync APK to the server
+        # The deploy key is locked to `rrsync -wo /var/www/qrsafe-web`, so the
+        # path after the colon is relative to that web root. downloads/ is
+        # protected from the web deploy's --delete.
+        run: |
+          cp apk/app-arm64-v8a-debug.apk qrsafe.apk
+          rsync -vz \
+            -e "ssh -i $HOME/.ssh/deploy_key -o IdentitiesOnly=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=accept-new" \
+            qrsafe.apk deploy@193.181.211.239:downloads/qrsafe.apk

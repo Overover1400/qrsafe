@@ -93,6 +93,6 @@ jobs:
         # which known_hosts ssh consults — this fixes "Host key verification
         # failed".
         run: |
-          rsync -rlzv --delete \
+          rsync -rlzv --delete --filter='protect downloads/***' \
             -e "ssh -i $HOME/.ssh/deploy_key -o IdentitiesOnly=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=accept-new" \
             web/ deploy@193.181.211.239:
