@@ -112,6 +112,21 @@ jobs:
             exit 1
           fi
 
+      - name: Build the release app bundle
+        # The .aab Play wants. This job has no upload key, so Gradle signs it
+        # with the debug key; the signature is replaced locally with the real
+        # upload key before it goes to Play. Keeping the key off GitHub is
+        # deliberate - build-aab below does the signed build once the three
+        # ANDROID_* secrets exist, and this step is the way to get a bundle
+        # until then.
+        run: |
+          set -o pipefail
+          if ! flutter build appbundle --release --dart-define=API_BASE_URL=https://api.qrsafe.flemby.com --dart-define=APP_VERSION=${{ steps.version.outputs.value }} 2>&1 | tee build-bundle.log; then
+            message=$(tail -n 80 build-bundle.log | sed -e 's/%/%25/g' | sed -z -e 's/\n/%0A/g')
+            echo "::error title=App bundle build failed::$message"
+            exit 1
+          fi
+
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
@@ -119,6 +134,13 @@ jobs:
           path: |
             mobile/build/app/outputs/flutter-apk/app-debug.apk
             mobile/build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+          retention-days: 30
+
+      - name: Upload the app bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: qrsafe-bundle-unsigned
+          path: mobile/build/app/outputs/bundle/release/app-release.aab
           retention-days: 30
 
   build-aab:
@@ -255,6 +277,12 @@ jobs:
           name: qrsafe-debug-apk
           path: apk
 
+      - name: Download the app bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: qrsafe-bundle-unsigned
+          path: aab
+
       - name: Add server to known_hosts
         run: |
           mkdir -p "$HOME/.ssh"
@@ -273,6 +301,10 @@ jobs:
         # protected from the web deploy's --delete.
         run: |
           cp apk/app-arm64-v8a-release.apk qrsafe.apk
+          cp aab/app-release.aab qrsafe-unsigned.aab
           rsync -vz \
             -e "ssh -i $HOME/.ssh/deploy_key -o IdentitiesOnly=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=accept-new" \
             qrsafe.apk deploy@193.181.211.239:downloads/qrsafe.apk
+          rsync -vz \
+            -e "ssh -i $HOME/.ssh/deploy_key -o IdentitiesOnly=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=accept-new" \
+            qrsafe-unsigned.aab deploy@193.181.211.239:downloads/qrsafe-unsigned.aab
