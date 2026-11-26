@@ -32,6 +32,10 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+          # Cache the Gradle dependency jars. Maven Central answered 429 Too
+          # Many Requests on a build that had nothing wrong with it; a cache
+          # hit fetches almost nothing and cannot be rate-limited.
+          cache: gradle
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -154,6 +158,10 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+          # Cache the Gradle dependency jars. Maven Central answered 429 Too
+          # Many Requests on a build that had nothing wrong with it; a cache
+          # hit fetches almost nothing and cannot be rate-limited.
+          cache: gradle
 
       - name: Set up Flutter
         if: steps.check.outputs.has_key == 'true'
