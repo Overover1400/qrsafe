@@ -56,6 +56,16 @@ android {
             } else {
                 signingConfigs.getByName("debug")
             }
+
+            // R8 is off for release, and that is not laziness. Shrinking broke
+            // the scanner: starting the camera died with a NullPointerException
+            // inside obfuscated plugin code ("g5.e.a(c5.b)"), because R8 strips
+            // classes ML Kit and the camera plugin only reach by reflection.
+            // Keep rules could carve out an exception, but they would have to be
+            // guessed one CI round at a time against a device we cannot attach a
+            // debugger to, and a working scanner is worth about 4 MB.
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
     }
 }
