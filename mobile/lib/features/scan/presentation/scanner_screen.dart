@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import '../../../core/theme/app_colors.dart';
 import '../application/recent_scans_controller.dart';
@@ -17,10 +18,18 @@ import 'widgets/scanner_error_view.dart';
 /// surface QR codes; the default empty-format controller can be flaky. Exposed
 /// as a top-level function so a test can assert the configuration without a
 /// camera.
+///
+/// `autoStart` is off on purpose. Left on, the controller calls start() during
+/// the first build, and on a fresh install that call is what raises the Android
+/// permission dialog — then fails, because the permission is not granted yet.
+/// Granting it afterwards does not retry, so the screen kept the failure even
+/// after the user tapped "While using the app". The screen asks first and
+/// starts the camera itself.
 MobileScannerController buildScannerController() => MobileScannerController(
   formats: const [BarcodeFormat.qrCode],
   detectionSpeed: DetectionSpeed.normal,
   detectionTimeoutMs: 1000,
+  autoStart: false,
 );
 
 /// Full-screen camera QR scanner. On detecting a code it pauses scanning, runs
@@ -39,15 +48,63 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
   /// already being handled.
   bool _handling = false;
 
+  /// True from the first frame until the permission answer is in. The screen
+  /// shows plain black meanwhile, because Android is drawing its own dialog
+  /// over it and anything else would compete with it.
+  bool _asking = true;
+
+  /// Set when the user refuses. Kept apart from the controller's own error so
+  /// the view can say "permission" without the camera ever having been asked
+  /// to start.
+  bool _refused = false;
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_openCamera());
+  }
+
   @override
   void dispose() {
     _controller.dispose();
     super.dispose();
   }
 
+  /// Asks for the camera, then starts it. Also the retry path, so a permission
+  /// just granted in Settings is picked up without restarting the app.
+  Future<void> _openCamera() async {
+    if (mounted) {
+      setState(() {
+        _asking = true;
+        _refused = false;
+      });
+    }
+
+    final status = await Permission.camera.request();
+    if (!mounted) return;
+
+    if (!status.isGranted) {
+      setState(() {
+        _asking = false;
+        _refused = true;
+      });
+      return;
+    }
+
+    setState(() => _asking = false);
+    try {
+      await _controller.start();
+    } on MobileScannerException {
+      // The controller publishes the reason into its own state; the error view
+      // below reads it from there.
+    }
+  }
+
   Future<void> _onDetect(BarcodeCapture capture) async {
     if (_handling) return;
-    final raw = capture.barcodes.isEmpty ? null : capture.barcodes.first.rawValue;
+    final raw = capture.barcodes.isEmpty
+        ? null
+        : capture.barcodes.first.rawValue;
     debugPrint('DETECTED: $raw');
     if (raw == null || raw.isEmpty) return;
 
@@ -70,9 +127,9 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
     // Record the scan (regardless of action), reset, and resume scanning.
     final result = ref.read(scanControllerProvider).valueOrNull;
     if (result != null) {
-      ref.read(recentScansProvider.notifier).add(
-        ScanRecord(result: result, scannedAt: DateTime.now()),
-      );
+      ref
+          .read(recentScansProvider.notifier)
+          .add(ScanRecord(result: result, scannedAt: DateTime.now()));
     }
     ref.read(scanControllerProvider.notifier).reset();
 
@@ -85,19 +142,6 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
     }
   }
 
-  /// Starts the camera again after a failure. The torch and camera-switch
-  /// buttons are meaningless while the camera is down, and `start()` throws
-  /// rather than returning a code, so the exception is swallowed here — the
-  /// controller publishes the new reason into its own state and the error view
-  /// rebuilds with it.
-  Future<void> _retry() async {
-    try {
-      await _controller.start();
-    } on MobileScannerException {
-      // Still broken; the view below already says why.
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -106,30 +150,54 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
       // failure itself rather than leaving it to MobileScanner's own fallback.
       // That matters for the scrim and the bottom controls: they are siblings
       // in the Stack and would otherwise be painted over the error message.
-      body: ValueListenableBuilder<MobileScannerState>(
-        valueListenable: _controller,
-        builder: (context, state, _) {
-          final error = state.error;
-          if (error != null) {
-            return Stack(
+      body: _asking
+          // Black while Android draws its own dialog over us, but with the
+          // close button, so the screen is never a dead end if that dialog
+          // does not appear.
+          ? Stack(
               fit: StackFit.expand,
               children: [
-                ScannerErrorView(error: error, onRetry: _retry),
+                const SizedBox.expand(),
                 _topBar(context, showTitle: false),
               ],
-            );
-          }
-          return Stack(
-            fit: StackFit.expand,
-            children: [
-              MobileScanner(controller: _controller, onDetect: _onDetect),
-              const _ScannerOverlay(),
-              _topBar(context),
-              _bottomControls(),
-            ],
-          );
-        },
-      ),
+            )
+          : _refused
+          ? Stack(
+              fit: StackFit.expand,
+              children: [
+                ScannerErrorView(
+                  error: const MobileScannerException(
+                    errorCode: MobileScannerErrorCode.permissionDenied,
+                  ),
+                  onRetry: _openCamera,
+                ),
+                _topBar(context, showTitle: false),
+              ],
+            )
+          : ValueListenableBuilder<MobileScannerState>(
+              valueListenable: _controller,
+              builder: (context, state, _) {
+                final error = state.error;
+                if (error != null) {
+                  return Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      ScannerErrorView(error: error, onRetry: _openCamera),
+                      _topBar(context, showTitle: false),
+                    ],
+                  );
+                }
+                return Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    MobileScanner(controller: _controller, onDetect: _onDetect),
+                    const _ScannerOverlay(),
+                    _topBar(context),
+                    _bottomControls(),
+                  ],
+                );
+              },
+            ),
     );
   }
 

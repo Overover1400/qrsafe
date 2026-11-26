@@ -30,5 +30,10 @@ void main() {
     expect(controller.formats, contains(BarcodeFormat.qrCode));
     expect(controller.detectionSpeed, DetectionSpeed.normal);
     expect(controller.detectionTimeoutMs, 1000);
+
+    // The screen asks for the camera permission and starts the camera itself.
+    // With autoStart the first start() races the permission dialog, fails, and
+    // never retries once the permission is granted.
+    expect(controller.autoStart, isFalse);
   });
 }
