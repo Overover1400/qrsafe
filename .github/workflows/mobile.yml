@@ -70,7 +70,16 @@ jobs:
       - name: Build debug APK
         # Bake the production API URL into the CI artifact. Local dev uses the
         # emulator-localhost default in lib/core/config/env.dart.
-        run: flutter build apk --debug --dart-define=API_BASE_URL=https://api.qrsafe.flemby.com
+        # Gradle's failure text lives in the log, which needs a sign-in to read.
+        # Keep it and re-emit the tail as an annotation, which does not.
+        run: |
+          set -o pipefail
+          if ! flutter build apk --debug --dart-define=API_BASE_URL=https://api.qrsafe.flemby.com 2>&1 | tee build-debug.log; then
+            # %25 first, or the %0A we add next would itself be escaped.
+            message=$(tail -n 80 build-debug.log | sed -e 's/%/%25/g' | sed -z -e 's/\n/%0A/g')
+            echo "::error title=Debug APK build failed::$message"
+            exit 1
+          fi
 
       - name: Build release per-ABI APKs
         # What she actually installs. A debug APK carries every architecture
@@ -78,7 +87,16 @@ jobs:
         # over Telegram. The release arm64 slice is a fraction of that. It is
         # signed with the debug key unless the upload key is configured (see
         # android/app/build.gradle.kts), so it sideloads but is not Play-ready.
-        run: flutter build apk --release --split-per-abi --dart-define=API_BASE_URL=https://api.qrsafe.flemby.com
+        # Gradle's failure text lives in the log, which needs a sign-in to read.
+        # Keep it and re-emit the tail as an annotation, which does not.
+        run: |
+          set -o pipefail
+          if ! flutter build apk --release --split-per-abi --dart-define=API_BASE_URL=https://api.qrsafe.flemby.com 2>&1 | tee build-release.log; then
+            # %25 first, or the %0A we add next would itself be escaped.
+            message=$(tail -n 80 build-release.log | sed -e 's/%/%25/g' | sed -z -e 's/\n/%0A/g')
+            echo "::error title=Release APK build failed::$message"
+            exit 1
+          fi
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
@@ -161,7 +179,16 @@ jobs:
 
       - name: Build app bundle
         if: steps.check.outputs.has_key == 'true'
-        run: flutter build appbundle --release --dart-define=API_BASE_URL=https://api.qrsafe.flemby.com
+        # Gradle's failure text lives in the log, which needs a sign-in to read.
+        # Keep it and re-emit the tail as an annotation, which does not.
+        run: |
+          set -o pipefail
+          if ! flutter build appbundle --release --dart-define=API_BASE_URL=https://api.qrsafe.flemby.com 2>&1 | tee build-bundle.log; then
+            # %25 first, or the %0A we add next would itself be escaped.
+            message=$(tail -n 80 build-bundle.log | sed -e 's/%/%25/g' | sed -z -e 's/\n/%0A/g')
+            echo "::error title=App bundle build failed::$message"
+            exit 1
+          fi
 
       - name: Confirm it is signed with the upload key
         if: steps.check.outputs.has_key == 'true'
