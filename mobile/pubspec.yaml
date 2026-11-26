@@ -37,6 +37,7 @@ dependencies:
   pdf: ^3.11.0
   # Native document scanner (ML Kit on Android): edge detection + crop UI
   cunning_document_scanner: ^3.1.0
+  permission_handler: ^13.0.2
 
 dev_dependencies:
   flutter_test:

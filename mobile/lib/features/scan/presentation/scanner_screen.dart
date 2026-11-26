@@ -9,6 +9,7 @@ import '../application/recent_scans_controller.dart';
 import '../application/scan_controller.dart';
 import '../data/scan_models.dart';
 import 'widgets/scan_result_sheet.dart';
+import 'widgets/scanner_error_view.dart';
 
 /// Builds the scanner's controller, configured to detect QR codes specifically.
 ///
@@ -84,18 +85,50 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
     }
   }
 
+  /// Starts the camera again after a failure. The torch and camera-switch
+  /// buttons are meaningless while the camera is down, and `start()` throws
+  /// rather than returning a code, so the exception is swallowed here — the
+  /// controller publishes the new reason into its own state and the error view
+  /// rebuilds with it.
+  Future<void> _retry() async {
+    try {
+      await _controller.start();
+    } on MobileScannerException {
+      // Still broken; the view below already says why.
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          MobileScanner(controller: _controller, onDetect: _onDetect),
-          const _ScannerOverlay(),
-          _topBar(context),
-          _bottomControls(),
-        ],
+      // The controller is a ValueNotifier, so the screen can see a camera
+      // failure itself rather than leaving it to MobileScanner's own fallback.
+      // That matters for the scrim and the bottom controls: they are siblings
+      // in the Stack and would otherwise be painted over the error message.
+      body: ValueListenableBuilder<MobileScannerState>(
+        valueListenable: _controller,
+        builder: (context, state, _) {
+          final error = state.error;
+          if (error != null) {
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                ScannerErrorView(error: error, onRetry: _retry),
+                _topBar(context, showTitle: false),
+              ],
+            );
+          }
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              MobileScanner(controller: _controller, onDetect: _onDetect),
+              const _ScannerOverlay(),
+              _topBar(context),
+              _bottomControls(),
+            ],
+          );
+        },
       ),
     );
   }
@@ -105,7 +138,7 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
   /// lands on top of the scan window. The title is centred against the screen
   /// rather than against the space beside the close button, which is why this
   /// is a Stack and not a Row with spacers.
-  Widget _topBar(BuildContext context) {
+  Widget _topBar(BuildContext context, {bool showTitle = true}) {
     return SafeArea(
       child: Align(
         alignment: Alignment.topCenter,
@@ -113,17 +146,18 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
           height: 64,
           child: Stack(
             children: [
-              const Center(
-                child: Text(
-                  'Point at a QR code',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+              if (showTitle)
+                const Center(
+                  child: Text(
+                    'Point at a QR code',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-              ),
               Align(
                 alignment: Alignment.centerLeft,
                 child: Padding(
