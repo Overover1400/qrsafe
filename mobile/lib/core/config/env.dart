@@ -13,6 +13,14 @@ class Env {
     defaultValue: 'http://10.0.2.2:8080', // Android emulator -> host localhost
   );
 
-  /// User-facing app version, surfaced on the Settings screen.
-  static const appVersion = '0.1.0';
+  /// User-facing app version, shown on the Settings screen.
+  ///
+  /// CI passes the real one straight from pubspec, because a hand-typed
+  /// constant drifts: this said 0.1.0 while the app shipped as 1.0.0, so the
+  /// screen could not answer the one question it exists to answer — which
+  /// build is on the phone. A local `flutter run` shows "dev".
+  static const appVersion = String.fromEnvironment(
+    'APP_VERSION',
+    defaultValue: 'dev',
+  );
 }

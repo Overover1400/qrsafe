@@ -46,6 +46,16 @@ jobs:
       - name: Show Flutter version
         run: flutter --version
 
+      - name: Read the app version
+        id: version
+        # pubspec is the single source of truth for the version. Reading it
+        # here and passing it into every build keeps the Settings screen
+        # honest without anyone remembering to edit a constant.
+        run: |
+          version=$(sed -n 's/^version: *//p' pubspec.yaml | head -1)
+          echo "value=$version" >> "$GITHUB_OUTPUT"
+          echo "App version: $version"
+
       - name: Install dependencies
         run: flutter pub get
 
@@ -74,7 +84,7 @@ jobs:
         # Keep it and re-emit the tail as an annotation, which does not.
         run: |
           set -o pipefail
-          if ! flutter build apk --debug --dart-define=API_BASE_URL=https://api.qrsafe.flemby.com 2>&1 | tee build-debug.log; then
+          if ! flutter build apk --debug --dart-define=API_BASE_URL=https://api.qrsafe.flemby.com --dart-define=APP_VERSION=${{ steps.version.outputs.value }} 2>&1 | tee build-debug.log; then
             # %25 first, or the %0A we add next would itself be escaped.
             message=$(tail -n 80 build-debug.log | sed -e 's/%/%25/g' | sed -z -e 's/\n/%0A/g')
             echo "::error title=Debug APK build failed::$message"
@@ -91,7 +101,7 @@ jobs:
         # Keep it and re-emit the tail as an annotation, which does not.
         run: |
           set -o pipefail
-          if ! flutter build apk --release --split-per-abi --dart-define=API_BASE_URL=https://api.qrsafe.flemby.com 2>&1 | tee build-release.log; then
+          if ! flutter build apk --release --split-per-abi --dart-define=API_BASE_URL=https://api.qrsafe.flemby.com --dart-define=APP_VERSION=${{ steps.version.outputs.value }} 2>&1 | tee build-release.log; then
             # %25 first, or the %0A we add next would itself be escaped.
             message=$(tail -n 80 build-release.log | sed -e 's/%/%25/g' | sed -z -e 's/\n/%0A/g')
             echo "::error title=Release APK build failed::$message"
@@ -173,6 +183,13 @@ jobs:
           } > android/key.properties
           chmod 600 android/key.properties
 
+      - name: Read the app version
+        id: version
+        if: steps.check.outputs.has_key == 'true'
+        run: |
+          version=$(sed -n 's/^version: *//p' pubspec.yaml | head -1)
+          echo "value=$version" >> "$GITHUB_OUTPUT"
+
       - name: Install dependencies
         if: steps.check.outputs.has_key == 'true'
         run: flutter pub get
@@ -183,7 +200,7 @@ jobs:
         # Keep it and re-emit the tail as an annotation, which does not.
         run: |
           set -o pipefail
-          if ! flutter build appbundle --release --dart-define=API_BASE_URL=https://api.qrsafe.flemby.com 2>&1 | tee build-bundle.log; then
+          if ! flutter build appbundle --release --dart-define=API_BASE_URL=https://api.qrsafe.flemby.com --dart-define=APP_VERSION=${{ steps.version.outputs.value }} 2>&1 | tee build-bundle.log; then
             # %25 first, or the %0A we add next would itself be escaped.
             message=$(tail -n 80 build-bundle.log | sed -e 's/%/%25/g' | sed -z -e 's/\n/%0A/g')
             echo "::error title=App bundle build failed::$message"
