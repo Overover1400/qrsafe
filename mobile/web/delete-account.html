@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QRSafe — Delete your account</title>
+<style>
+  :root {
+    --canvas: #F1FAF8;
+    --card: #FFFFFF;
+    --accent: #0E7C8A;
+    --ink: #0F3B3F;
+    --ink-mid: #466B6E;
+    --line: #D6EBE7;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 32px 16px 64px;
+    background: var(--canvas);
+    color: var(--ink);
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  main { max-width: 720px; margin: 0 auto; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 32px 28px;
+  }
+  .brand { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+  .mark {
+    width: 44px; height: 44px; border-radius: 12px; flex: none;
+    background: linear-gradient(135deg, #7FE3D0, #14A89C 55%, #0E7C8A);
+  }
+  .brand h1 { margin: 0; font-size: 22px; letter-spacing: -0.01em; }
+  .brand p { margin: 2px 0 0; color: var(--ink-mid); font-size: 13px; }
+  h2 { font-size: 17px; margin: 30px 0 8px; color: var(--accent); }
+  h2:first-of-type { margin-top: 8px; }
+  ol, ul { padding-left: 22px; }
+  li { margin: 8px 0; }
+  .muted { color: var(--ink-mid); font-size: 14px; }
+  a { color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 15px; }
+  th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--accent); font-weight: 600; }
+  .mail {
+    display: inline-block; margin-top: 6px; padding: 12px 20px; border-radius: 999px;
+    background: #14A89C; color: #fff; text-decoration: none; font-weight: 600;
+  }
+  footer { margin-top: 24px; text-align: center; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --canvas: #07211F; --card: #0D2E2E; --ink: #E6F5F2;
+      --ink-mid: #9CC3BF; --line: #1C4A48; --accent: #5FD6C8;
+    }
+  }
+  :root[data-theme="dark"] {
+    --canvas: #07211F; --card: #0D2E2E; --ink: #E6F5F2;
+    --ink-mid: #9CC3BF; --line: #1C4A48; --accent: #5FD6C8;
+  }
+</style>
+</head>
+<body>
+<main>
+  <div class="card">
+    <div class="brand">
+      <div class="mark" aria-hidden="true"></div>
+      <div>
+        <h1>Delete your QRSafe account</h1>
+        <p>QRSafe, by Semicolon &middot; last updated 26 November 2026</p>
+      </div>
+    </div>
+
+    <p>This page explains how to have your <strong>QRSafe</strong> account and the data
+      attached to it deleted. QRSafe is published by <strong>Semicolon</strong>.</p>
+
+    <h2>How to ask us to delete it</h2>
+    <ol>
+      <li>Email <a href="mailto:info@semicolon.live">info@semicolon.live</a> with the subject
+        <strong>Delete my QRSafe account</strong>.</li>
+      <li>Send it from the email address you signed in with. If you never signed in, write from
+        any address and tell us the code you want removed, or ask us to delete the anonymous
+        account that made it.</li>
+      <li>We reply to confirm, and the deletion is done within <strong>30 days</strong>.</li>
+    </ol>
+    <p><a class="mail" href="mailto:info@semicolon.live?subject=Delete%20my%20QRSafe%20account">Email us to delete my account</a></p>
+
+    <h2>What is deleted</h2>
+    <table>
+      <tr><th>Data</th><th>What happens</th></tr>
+      <tr>
+        <td>Your account and the email address you signed in with</td>
+        <td>Deleted</td>
+      </tr>
+      <tr>
+        <td>Every QR code you saved, with its contents and label</td>
+        <td>Deleted</td>
+      </tr>
+      <tr>
+        <td>Your short links and dynamic codes</td>
+        <td>Deleted. A code already printed will stop working</td>
+      </tr>
+    </table>
+
+    <h2>What we keep, and for how long</h2>
+    <ul>
+      <li><strong>Scan records for short links</strong> &mdash; the time of a scan, the browser
+        user-agent and a one-way hash of the visitor IP address. These are kept for up to
+        <strong>12 months</strong> and then removed. They carry no personal identifier and are not
+        linked back to you once the account is gone.</li>
+      <li>Nothing else is kept.</li>
+    </ul>
+
+    <h2>Deleting one code instead of the account</h2>
+    <p>You do not have to delete everything. Delete a single code inside the app and it is removed
+      from our server at the same time. You can also ask us by email to delete particular codes and
+      keep the account.</p>
+
+    <h2>Your phone</h2>
+    <p>Photos and PDFs from the document scanner are stored on your own device and were never sent
+      to us, so deleting your account does not touch them. Remove them from your phone yourself.</p>
+
+    <p class="muted">Full details of what QRSafe stores are in the
+      <a href="privacy.html">privacy policy</a>.</p>
+  </div>
+  <footer class="muted">QRSafe &middot; Semicolon &middot;
+    <a href="https://semicolon.live" rel="noopener">semicolon.live</a></footer>
+</main>
+</body>
+</html>
