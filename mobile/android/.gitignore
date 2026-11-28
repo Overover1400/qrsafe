@@ -11,4 +11,7 @@ GeneratedPluginRegistrant.java
 # See https://flutter.dev/to/reference-keystore
 key.properties
 **/*.keystore
+# ...except the fixed debug key: without a stable certificate every APK
+# she is sent is refused as an update by Android. It is not a secret.
+!debug.keystore
 **/*.jks
