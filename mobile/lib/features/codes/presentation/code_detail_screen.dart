@@ -1,3 +1,4 @@
+import '../../../core/barcode/barcode_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -154,7 +155,14 @@ class _Body extends ConsumerWidget {
                 ),
               ],
             ),
-            child: QrView(data: code.qrContent, color: c.inkDark, size: 220),
+            child: code.barcodeSymbology == null
+                ? QrView(data: code.qrContent, color: c.inkDark, size: 220)
+                : BarcodeView(
+                    symbology: code.barcodeSymbology!,
+                    value: code.qrContent,
+                    color: c.inkDark,
+                    width: 260,
+                  ),
           ),
         ),
         const SizedBox(height: 24),
@@ -186,6 +194,7 @@ class _Body extends ConsumerWidget {
               color: c.inkDark,
               fileName: 'qrsafe-${code.id}.png',
               label: code.label,
+              symbology: code.barcodeSymbology,
             ),
           ),
         ),

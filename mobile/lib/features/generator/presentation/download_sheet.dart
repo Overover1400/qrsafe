@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 
+import '../../../core/barcode/barcode_image.dart';
 import '../../../core/qr/qr_export_formats.dart';
 import '../../../core/qr/qr_image.dart';
 import '../../../core/theme/app_theme.dart';
@@ -24,6 +25,7 @@ class DownloadSheet extends StatelessWidget {
     required this.color,
     required this.fileName,
     this.label,
+    this.symbology,
     this.exporter = const QrExportService(),
   });
 
@@ -31,8 +33,12 @@ class DownloadSheet extends StatelessWidget {
   final Color color;
   final String fileName;
 
-  /// Printed under the QR in the PDF export. Optional.
+  /// Printed under the code in the PDF export. Optional.
   final String? label;
+
+  /// Set when [data] is a 1D barcode rather than a QR, which needs its
+  /// own renderers in all three formats.
+  final BarcodeSymbology? symbology;
 
   final QrExportService exporter;
 
@@ -41,6 +47,30 @@ class DownloadSheet extends StatelessWidget {
       fileName.replaceAll(RegExp(r'\.(png|svg|pdf)$', caseSensitive: false), '');
 
   Future<(Uint8List?, String, String)> _build(QrExportFormat format) async {
+    final sym = symbology;
+    if (sym != null) {
+      switch (format) {
+        case QrExportFormat.png:
+          return (
+            await renderBarcodePng(sym, data, color: color),
+            '\$_baseName.png',
+            'image/png',
+          );
+        case QrExportFormat.svg:
+          final svg = renderBarcodeSvg(sym, data, color: color);
+          return (
+            svg == null ? null : Uint8List.fromList(utf8.encode(svg)),
+            '\$_baseName.svg',
+            'image/svg+xml',
+          );
+        case QrExportFormat.pdf:
+          return (
+            await renderBarcodePdf(sym, data, color: color, label: label),
+            '\$_baseName.pdf',
+            'application/pdf',
+          );
+      }
+    }
     switch (format) {
       case QrExportFormat.png:
         return (

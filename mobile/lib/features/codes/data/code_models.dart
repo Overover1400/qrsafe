@@ -1,3 +1,4 @@
+import '../../../core/barcode/barcode_image.dart';
 import '../../generator/data/code_payload.dart';
 import '../../generator/data/payload_encoder.dart';
 
@@ -54,6 +55,13 @@ class Code {
 
   /// The typed payload, reconstructed from the stored JSON for this code's type.
   CodePayload get typedPayload => CodePayload.fromJson(type, payload);
+
+  /// The symbology when this code is a 1D barcode, null when it is a QR.
+  /// Decides which renderer the detail screen and the download sheet use.
+  BarcodeSymbology? get barcodeSymbology {
+    final p = typedPayload;
+    return p is BarcodePayload ? p.symbology : null;
+  }
 
   /// What the code's QR should encode: a dynamic code encodes its redirect URL;
   /// a static code encodes the literal payload content.

@@ -1,7 +1,7 @@
 name: qrsafe_mobile
 description: "QRSafe — scan QR codes safely."
 publish_to: 'none'
-version: 1.0.1+2
+version: 1.0.2+3
 
 environment:
   sdk: ^3.12.0
@@ -28,6 +28,9 @@ dependencies:
   # SVG rendering (icons, if needed)
   flutter_svg: ^2.0.0
   # Client-side QR rendering (static codes render offline; dynamic encode redirect_url)
+  # Already present as a transitive dependency of pdf; named here because
+  # the barcode generator imports it directly.
+  barcode: ^2.2.8
   qr_flutter: ^4.1.0
   # Save downloaded QR PNGs to device storage
   path_provider: ^2.1.0

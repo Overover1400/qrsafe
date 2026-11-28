@@ -16,6 +16,8 @@ class PayloadEncoder {
     VCardPayload p => _vcard(p),
     EmailPayload p => _email(p),
     TextPayload p => p.text,
+    // A barcode holds its value literally; there is nothing to assemble.
+    BarcodePayload p => p.value.trim(),
   };
 
   // WIFI:T:WPA;S:ssid;P:password;H:false;;  (special chars escaped)

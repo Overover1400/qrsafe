@@ -1,3 +1,5 @@
+import '../../../core/barcode/barcode_image.dart';
+
 /// The five QR code types the generator supports (the backend also accepts
 /// `sms`, but the mobile UI ships these five for v1).
 ///
@@ -9,7 +11,8 @@ enum CodeType {
   wifi('wifi'),
   vcard('vcard'),
   email('email'),
-  text('text');
+  text('text'),
+  barcode('barcode');
 
   const CodeType(this.wire);
 
@@ -25,6 +28,10 @@ enum CodeType {
 
   /// Only URL codes may be dynamic (server constraint).
   bool get supportsDynamic => this == CodeType.url;
+
+  /// A 1D barcode is not a QR and cannot join a multi-link page: it
+  /// carries one short value and is always saved on its own.
+  bool get isBarcode => this == CodeType.barcode;
 }
 
 /// WiFi authentication scheme for [WifiPayload].
@@ -87,6 +94,10 @@ sealed class CodePayload {
         body: s('body'),
       ),
       CodeType.text => TextPayload(text: (json['text'] as String?) ?? ''),
+      CodeType.barcode => BarcodePayload(
+        symbology: BarcodeSymbology.parse(json['symbology'] as String?),
+        value: s('value'),
+      ),
     };
   }
 
@@ -98,6 +109,10 @@ sealed class CodePayload {
       CodeType.vcard => const VCardPayload(name: ''),
       CodeType.email => const EmailPayload(to: ''),
       CodeType.text => const TextPayload(text: ''),
+      CodeType.barcode => const BarcodePayload(
+        symbology: BarcodeSymbology.code128,
+        value: '',
+      ),
     };
   }
 }
@@ -259,4 +274,35 @@ String _normalizeUrl(String raw) {
   if (t.isEmpty) return t;
   if (RegExp(r'^[a-zA-Z][a-zA-Z0-9+.\-]*://').hasMatch(t)) return t;
   return 'https://$t';
+}
+
+
+/// A 1D barcode: one symbology plus the value printed in it.
+///
+/// Unlike every other type here the content is not assembled from fields - the
+/// value IS the content - but the symbology decides whether it can be encoded
+/// at all, so validity asks the symbology rather than checking for emptiness.
+class BarcodePayload extends CodePayload {
+  const BarcodePayload({required this.symbology, required this.value});
+
+  final BarcodeSymbology symbology;
+  final String value;
+
+  @override
+  CodeType get type => CodeType.barcode;
+
+  @override
+  bool get isValid => symbology.accepts(value);
+
+  @override
+  Map<String, dynamic> toJson() => {
+    'symbology': symbology.wire,
+    'value': value.trim(),
+  };
+
+  BarcodePayload copyWith({BarcodeSymbology? symbology, String? value}) =>
+      BarcodePayload(
+        symbology: symbology ?? this.symbology,
+        value: value ?? this.value,
+      );
 }

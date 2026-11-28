@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../data/code_payload.dart';
+import 'barcode_form.dart';
 import 'email_form.dart';
 import 'text_form.dart';
 import 'url_form.dart';
@@ -27,6 +28,7 @@ class PayloadForm extends StatelessWidget {
         VCardPayload p => VCardForm(payload: p, onChanged: onChanged),
         EmailPayload p => EmailForm(payload: p, onChanged: onChanged),
         TextPayload p => TextForm(payload: p, onChanged: onChanged),
+        BarcodePayload p => BarcodeForm(payload: p, onChanged: onChanged),
       },
     );
   }

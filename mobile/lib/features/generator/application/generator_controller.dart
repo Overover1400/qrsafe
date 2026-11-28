@@ -44,19 +44,27 @@ class GeneratorState {
   CodePayload get payload => payloads[type]!;
 
   /// Every tab the user has filled in, in tab order.
+  ///
+  /// The barcode tab is left out on purpose: a multi-link page is a web page
+  /// behind a QR, and a 1D barcode can hold neither. It is saved on its own
+  /// (see [barcodeOnly]).
   List<CodePayload> get filledPayloads => [
     for (final t in CodeType.values)
-      if (payloads[t]!.isValid) payloads[t]!,
+      if (!t.isBarcode && payloads[t]!.isValid) payloads[t]!,
   ];
+
+  /// True when the barcode tab is the one being worked on and holds a value
+  /// that can actually be encoded. Save then writes just that.
+  bool get barcodeOnly => type.isBarcode && payload.isValid;
 
   /// Whether anything at all can be saved. Deliberately not limited to the
   /// visible tab: with two tabs filled, Save stays live while she looks at an
   /// empty third one.
-  bool get isValid => filledPayloads.isNotEmpty;
+  bool get isValid => barcodeOnly || filledPayloads.isNotEmpty;
 
   /// More than one filled tab turns the save into a hosted multi-link page
   /// instead of five separate codes.
-  bool get isMultiLink => filledPayloads.length > 1;
+  bool get isMultiLink => !barcodeOnly && filledPayloads.length > 1;
 
   /// The string that would be encoded into the QR for a static code (the live
   /// preview always shows this literal content).
@@ -129,7 +137,15 @@ class GeneratorController extends Notifier<GeneratorState> {
     final api = ref.read(codesApiProvider);
 
     final Code created;
-    if (filled.length > 1) {
+    if (s.barcodeOnly) {
+      // A barcode never merges with the other tabs.
+      created = await api.create(
+        type: CodeType.barcode,
+        payload: s.payload.toJson(),
+        label: label.isEmpty ? null : label,
+        isDynamic: false,
+      );
+    } else if (filled.length > 1) {
       // Several tabs filled: one QR that opens a page holding all of them.
       created = await api.createMulti(
         items: [

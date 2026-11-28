@@ -22,6 +22,10 @@ const (
 	TypeEmail CodeType = "email"
 	TypeText  CodeType = "text"
 	TypeSMS   CodeType = "sms"
+	// TypeBarcode is a 1D barcode (Code 128, EAN-13, UPC-A and friends).
+	// Payload is {symbology, value}; it can never be dynamic, because a 1D
+	// symbology has no room for a redirect URL.
+	TypeBarcode CodeType = "barcode"
 	// TypeMulti is a hosted page offering several links behind one QR. It is
 	// always dynamic: the QR encodes /r/{slug} and the page is rendered there.
 	TypeMulti CodeType = "multi"

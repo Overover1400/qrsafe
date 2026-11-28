@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS codes (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  type            TEXT NOT NULL CHECK (type IN ('url', 'wifi', 'vcard', 'email', 'text', 'sms')),
+  type            TEXT NOT NULL CHECK (type IN ('url', 'wifi', 'vcard', 'email', 'text', 'sms', 'multi', 'barcode')),
   payload         JSONB NOT NULL,
   is_dynamic      BOOLEAN NOT NULL DEFAULT FALSE,
   label           TEXT,

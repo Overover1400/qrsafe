@@ -9,6 +9,7 @@ IconData codeTypeIcon(CodeType type) => switch (type) {
   CodeType.vcard => Icons.contact_page_rounded,
   CodeType.email => Icons.alternate_email_rounded,
   CodeType.text => Icons.notes_rounded,
+  CodeType.barcode => Icons.barcode_reader,
 };
 
 /// The short human label for a [CodeType].
@@ -18,4 +19,5 @@ String codeTypeLabel(CodeType type) => switch (type) {
   CodeType.vcard => 'vCard',
   CodeType.email => 'Email',
   CodeType.text => 'Text',
+  CodeType.barcode => 'Barcode',
 };

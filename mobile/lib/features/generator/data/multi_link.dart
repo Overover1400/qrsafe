@@ -38,6 +38,13 @@ List<MultiLinkItem> buildMultiLinkItems(Iterable<CodePayload> payloads) {
   for (final payload in payloads) {
     if (!payload.isValid) continue;
     switch (payload) {
+      // A barcode is never a row here: it is saved on its own, and a 1D
+      // symbology cannot carry a link to this page anyway. GeneratorState
+      // already leaves it out of filledPayloads; this case is the backstop
+      // that also keeps the switch exhaustive.
+      case BarcodePayload _:
+        break;
+
       case UrlPayload p:
         items.add(
           MultiLinkItem(kind: 'url', label: 'Website', url: p.normalizedUrl),

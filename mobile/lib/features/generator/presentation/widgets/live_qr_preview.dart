@@ -1,15 +1,25 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/barcode/barcode_image.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/widgets/qr_view.dart';
 
 /// The centered white QR card with a soft teal shadow, plus the green
 /// "No watermark · Yours forever" reassurance pill below it.
 class LiveQrPreview extends StatelessWidget {
-  const LiveQrPreview({super.key, required this.data, required this.color});
+  const LiveQrPreview({
+    super.key,
+    required this.data,
+    required this.color,
+    this.symbology,
+  });
 
   final String data;
   final Color color;
+
+  /// Set only on the barcode tab. A 1D barcode is wide and short, so it
+  /// cannot reuse the square QR card.
+  final BarcodeSymbology? symbology;
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +39,14 @@ class LiveQrPreview extends StatelessWidget {
               ),
             ],
           ),
-          child: QrView(data: data, color: color, size: 200),
+          child: symbology == null
+              ? QrView(data: data, color: color, size: 200)
+              : BarcodeView(
+                  symbology: symbology!,
+                  value: data,
+                  color: color,
+                  width: 240,
+                ),
         ),
         const SizedBox(height: 14),
         Container(

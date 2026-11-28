@@ -66,6 +66,7 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
           color: Color(state.color),
           fileName: 'qrsafe-${code.id}.png',
           label: state.label,
+          symbology: code.barcodeSymbology,
         ),
       );
       if (!mounted) return;
@@ -123,7 +124,13 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
             ),
             const SizedBox(height: 24),
             Center(
-              child: LiveQrPreview(data: _previewData, color: Color(state.color)),
+              child: LiveQrPreview(
+                data: _previewData,
+                color: Color(state.color),
+                symbology: state.payload is BarcodePayload
+                    ? (state.payload as BarcodePayload).symbology
+                    : null,
+              ),
             ),
             if (state.isMultiLink) ...[
               const SizedBox(height: 12),
@@ -187,6 +194,9 @@ class _GeneratorScreenState extends ConsumerState<GeneratorScreen> {
     VCardPayload _ => 'Enter a name to continue',
     EmailPayload _ => 'Enter a recipient to continue',
     TextPayload _ => 'Enter some text to continue',
+    BarcodePayload p => p.value.trim().isEmpty
+        ? 'Enter a value to continue'
+        : (p.symbology.errorFor(p.value) ?? 'Enter a value to continue'),
   };
 }
 
