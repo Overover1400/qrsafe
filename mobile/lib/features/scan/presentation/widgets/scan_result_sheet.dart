@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -104,7 +105,7 @@ class ScanResultView extends StatelessWidget {
         const _Grabber(),
         _HeaderCard(result: result),
         const SizedBox(height: 16),
-        _ChecksList(result: result),
+        if (result.isLink) _ChecksList(result: result),
         const SizedBox(height: 20),
         _VerdictAction(result: result),
         const SizedBox(height: 8),
@@ -151,9 +152,9 @@ class _HeaderCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Scanned link',
-            style: TextStyle(color: Colors.white, fontSize: 13),
+          Text(
+            result.isLink ? 'Scanned link' : 'Scanned code',
+            style: const TextStyle(color: Colors.white, fontSize: 13),
           ),
           const SizedBox(height: 6),
           Text(
@@ -167,10 +168,11 @@ class _HeaderCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 14),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: VerdictPill(verdict: result.verdict),
-          ),
+          if (result.isLink)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: VerdictPill(verdict: result.verdict),
+            ),
         ],
       ),
     );
@@ -260,6 +262,21 @@ class _VerdictAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.qrColors;
+    if (!result.isLink) {
+      return PrimaryButton.solid(
+        label: 'Copy',
+        color: c.inkDark,
+        icon: Icons.copy_rounded,
+        onPressed: () async {
+          await Clipboard.setData(ClipboardData(text: result.url));
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Copied.')),
+            );
+          }
+        },
+      );
+    }
     switch (result.verdict) {
       case Verdict.safe:
         return PrimaryButton.solid(

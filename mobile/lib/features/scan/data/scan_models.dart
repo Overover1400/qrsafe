@@ -48,7 +48,21 @@ class ScanResult {
     required this.verdict,
     required this.reasons,
     required this.cached,
+    this.isLink = true,
   });
+
+  /// A code whose contents are not a web link at all - a product barcode, a
+  /// phone number, a line of text. There is nothing to check and nothing to
+  /// open, so this never reaches the server: the backend treats a value with
+  /// no scheme as malicious ("URL has no scheme"), which would paint a red
+  /// danger screen over every EAN-13 on a cereal box.
+  factory ScanResult.plain(String value) => ScanResult(
+    url: value,
+    verdict: Verdict.unknown,
+    reasons: const [],
+    cached: false,
+    isLink: false,
+  );
 
   /// The URL that was checked (echoed by the server).
   final String url;
@@ -59,6 +73,10 @@ class ScanResult {
 
   /// Whether the server served this verdict from its cache.
   final bool cached;
+
+  /// False when the scanned contents are not a web link, so the UI offers
+  /// "copy" instead of "open" and says nothing about safety.
+  final bool isLink;
 
   factory ScanResult.fromJson(Map<String, dynamic> json) {
     final rawReasons = (json['reasons'] as List?) ?? const [];

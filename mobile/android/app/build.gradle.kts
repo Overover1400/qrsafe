@@ -79,3 +79,17 @@ kotlin {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    // Google Play rejects every update whose native libraries are not 16 KB
+    // page aligned. The two that were not are Google's own, pulled in by
+    // mobile_scanner: libimage_processing_util_jni.so from CameraX (4 KB until
+    // camera-core 1.4.0) and libbarhopper_v3.so from the bundled ML Kit
+    // barcode model. Naming newer versions here wins the Gradle version
+    // conflict without forking the plugin. Check alignment after any bump:
+    // tool/check_16kb.py reads the ELF program headers out of the .aab.
+    implementation("androidx.camera:camera-core:1.7.0")
+    implementation("androidx.camera:camera-camera2:1.7.0")
+    implementation("androidx.camera:camera-lifecycle:1.7.0")
+    implementation("com.google.mlkit:barcode-scanning:17.3.0")
+}

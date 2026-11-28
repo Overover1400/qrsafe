@@ -12,11 +12,34 @@ import '../data/scan_models.dart';
 import 'widgets/scan_result_sheet.dart';
 import 'widgets/scanner_error_view.dart';
 
-/// Builds the scanner's controller, configured to detect QR codes specifically.
+/// The code formats the scanner accepts: QR plus the 1D barcodes found on
+/// packaging, books and tickets, plus the two other 2D formats in common use.
 ///
-/// Explicit `formats` (QR only) + `DetectionSpeed.normal` make ML Kit reliably
-/// surface QR codes; the default empty-format controller can be flaky. Exposed
-/// as a top-level function so a test can assert the configuration without a
+/// Listed one by one on purpose. `BarcodeFormat.all` makes ML Kit try every
+/// decoder on every frame, which is slower, and an empty list (the default)
+/// has been flaky. Anything not listed here is simply not seen, so a format
+/// the app claims in the store listing must appear in this list.
+const scannerFormats = <BarcodeFormat>[
+  BarcodeFormat.qrCode,
+  BarcodeFormat.ean13,
+  BarcodeFormat.ean8,
+  BarcodeFormat.upcA,
+  BarcodeFormat.upcE,
+  BarcodeFormat.code128,
+  BarcodeFormat.code39,
+  BarcodeFormat.code93,
+  BarcodeFormat.codabar,
+  BarcodeFormat.itf,
+  BarcodeFormat.dataMatrix,
+  BarcodeFormat.pdf417,
+  BarcodeFormat.aztec,
+];
+
+/// Builds the scanner's controller.
+///
+/// Explicit `formats` + `DetectionSpeed.normal` make ML Kit reliably surface
+/// codes; the default empty-format controller can be flaky. Exposed as a
+/// top-level function so a test can assert the configuration without a
 /// camera.
 ///
 /// `autoStart` is off on purpose. Left on, the controller calls start() during
@@ -26,7 +49,7 @@ import 'widgets/scanner_error_view.dart';
 /// after the user tapped "While using the app". The screen asks first and
 /// starts the camera itself.
 MobileScannerController buildScannerController() => MobileScannerController(
-  formats: const [BarcodeFormat.qrCode],
+  formats: scannerFormats,
   detectionSpeed: DetectionSpeed.normal,
   detectionTimeoutMs: 1000,
   autoStart: false,
