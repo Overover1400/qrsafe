@@ -38,6 +38,22 @@ android {
     }
 
     signingConfigs {
+        // A fixed debug key, checked in on purpose.
+        //
+        // Android refuses to install an update whose signing certificate
+        // differs from the installed app's. Every CI run used to generate its
+        // own throwaway debug keystore, so each APK she was sent could not
+        // install over the last one - the update silently failed and she kept
+        // testing an older build while we both read the new release notes.
+        // A debug key guards nothing (the Play identity is the upload key), so
+        // pinning it costs nothing and makes every build upgradable.
+        getByName("debug") {
+            storeFile = rootProject.file("debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+            storeType = "PKCS12"
+        }
         if (hasUploadKey) {
             create("upload") {
                 storeFile = file(keystoreProperties["storeFile"] as String)
