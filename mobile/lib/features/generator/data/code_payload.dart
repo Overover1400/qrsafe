@@ -297,7 +297,7 @@ class BarcodePayload extends CodePayload {
   @override
   Map<String, dynamic> toJson() => {
     'symbology': symbology.wire,
-    'value': value.trim(),
+    'value': normalizeDigits(value).trim(),
   };
 
   BarcodePayload copyWith({BarcodeSymbology? symbology, String? value}) =>

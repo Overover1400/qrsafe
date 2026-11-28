@@ -35,6 +35,36 @@ void main() {
     });
   });
 
+  group('Persian and Arabic digits', () {
+    // The bug this prevents: on a Persian keyboard every number comes out as
+    // U+06F1 and friends, which no symbology can encode, so Save stayed grey
+    // for every barcode type while the field looked perfectly correct.
+    test('are read as the digits they are', () {
+      expect(normalizeDigits('۱۲۳۴۵'), '12345');
+      expect(normalizeDigits('١٢٣'), '123');
+      expect(normalizeDigits('ABC-123'), 'ABC-123', reason: 'ASCII untouched');
+      expect(normalizeDigits('۴۰۰۶۳۸۱۳۳۳۹۳۱'),
+          '4006381333931');
+    });
+
+    test('make a valid barcode', () {
+      expect(BarcodeSymbology.code128.accepts('۱۲۳۴۵'), isTrue);
+      expect(
+        BarcodeSymbology.ean13
+            .accepts('۴۰۰۶۳۸۱۳۳۳۹۳۱'),
+        isTrue,
+      );
+      // And what gets stored and drawn is the ASCII form, so the saved code
+      // and the printed one cannot disagree.
+      const p = BarcodePayload(
+        symbology: BarcodeSymbology.code128,
+        value: '۱۲۳۴۵',
+      );
+      expect(p.isValid, isTrue);
+      expect(p.toJson()['value'], '12345');
+    });
+  });
+
   group('the near-miss suggestion', () {
     test('offers the typed digits minus the wrong check digit', () {
       // What a dead Save button looked like before: a full-length number

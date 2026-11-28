@@ -53,9 +53,10 @@ enum BarcodeSymbology {
   /// Whether [value] can actually be encoded. EAN and UPC carry a check digit
   /// and a fixed length, so a typo is a hard failure, not a blurry code.
   bool accepts(String value) {
-    if (value.trim().isEmpty) return false;
+    final v = normalizeDigits(value).trim();
+    if (v.isEmpty) return false;
     try {
-      return barcode.isValid(value.trim());
+      return barcode.isValid(v);
     } catch (_) {
       return false;
     }
@@ -71,7 +72,7 @@ enum BarcodeSymbology {
   /// correct one, so the form can offer the fix instead of only complaining.
   /// Never applied silently: the digits printed would not be the digits typed.
   String? suggestionFor(String value) {
-    final v = value.trim();
+    final v = normalizeDigits(value).trim();
     if (v.isEmpty || accepts(v)) return null;
     if (!digitsOnly) return null;
     if (v.length > 1 && accepts(v.substring(0, v.length - 1))) {
@@ -82,7 +83,7 @@ enum BarcodeSymbology {
 
   /// Why [value] was refused, in words the person typing can act on.
   String? errorFor(String value) {
-    final v = value.trim();
+    final v = normalizeDigits(value).trim();
     if (v.isEmpty || accepts(v)) return null;
     return switch (this) {
       // The last digit is a check digit. Leave it off and it is computed;
@@ -99,6 +100,29 @@ enum BarcodeSymbology {
       code128 => 'Code 128 cannot encode one of these characters.',
     };
   }
+}
+
+/// Rewrites Persian (۰-۹) and Arabic-Indic (٠-٩) digits as ASCII 0-9.
+///
+/// A Persian keyboard types ۱۲۳ where the person means 123, and no barcode
+/// symbology can encode those code points - Code 128 is ASCII, EAN and UPC
+/// are digits only. Without this the Save button stays grey for every type,
+/// with an error about characters that look, on screen, exactly like the
+/// digits that would have worked.
+String normalizeDigits(String input) {
+  const persianZero = 0x06F0;
+  const arabicZero = 0x0660;
+  final out = StringBuffer();
+  for (final rune in input.runes) {
+    if (rune >= persianZero && rune <= persianZero + 9) {
+      out.writeCharCode(0x30 + rune - persianZero);
+    } else if (rune >= arabicZero && rune <= arabicZero + 9) {
+      out.writeCharCode(0x30 + rune - arabicZero);
+    } else {
+      out.writeCharCode(rune);
+    }
+  }
+  return out.toString();
 }
 
 /// Aspect of the drawn barcode (width : height), printed text included.
@@ -125,7 +149,7 @@ class BarcodePainter extends CustomPainter {
       Rect.fromLTWH(0, 0, size.width, size.height),
       Paint()..color = const Color(0xFFFFFFFF),
     );
-    final v = value.trim();
+    final v = normalizeDigits(value).trim();
     if (v.isEmpty || !symbology.accepts(v)) return;
 
     // A quiet zone left and right: without it many scanners never lock on,
@@ -223,7 +247,7 @@ String? renderBarcodeSvg(
   final rgb = color.toARGB32() & 0xFFFFFF;
   try {
     final svg = symbology.barcode.toSvg(
-      value.trim(),
+      normalizeDigits(value).trim(),
       width: width,
       height: height,
       color: rgb,

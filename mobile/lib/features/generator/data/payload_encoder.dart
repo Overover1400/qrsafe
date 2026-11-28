@@ -1,3 +1,4 @@
+import '../../../core/barcode/barcode_image.dart';
 import 'code_payload.dart';
 
 /// Turns a [CodePayload] into the exact string encoded into a QR code.
@@ -17,7 +18,7 @@ class PayloadEncoder {
     EmailPayload p => _email(p),
     TextPayload p => p.text,
     // A barcode holds its value literally; there is nothing to assemble.
-    BarcodePayload p => p.value.trim(),
+    BarcodePayload p => normalizeDigits(p.value).trim(),
   };
 
   // WIFI:T:WPA;S:ssid;P:password;H:false;;  (special chars escaped)
