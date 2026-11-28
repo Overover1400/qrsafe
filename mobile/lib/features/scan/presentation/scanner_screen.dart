@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -130,7 +131,47 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
         : capture.barcodes.first.rawValue;
     debugPrint('DETECTED: $raw');
     if (raw == null || raw.isEmpty) return;
+    await _handleValue(raw);
+  }
 
+  /// Reads a code out of a picture the user already has.
+  ///
+  /// This exists because a code is often already on the screen you are
+  /// holding - a ticket in an email, a QR someone sent you - and there is no
+  /// second phone to point at it. ML Kit decodes a still image with the same
+  /// formats the live camera uses.
+  Future<void> _fromGallery() async {
+    if (_handling) return;
+    final XFile? file;
+    try {
+      file = await ImagePicker().pickImage(source: ImageSource.gallery);
+    } on Exception {
+      if (mounted) _say("Couldn't open your photos.");
+      return;
+    }
+    if (file == null || !mounted) return;
+
+    final capture = await _controller.analyzeImage(file.path);
+    final raw = (capture == null || capture.barcodes.isEmpty)
+        ? null
+        : capture.barcodes.first.rawValue;
+    if (!mounted) return;
+    if (raw == null || raw.isEmpty) {
+      _say('No code found in that picture.');
+      return;
+    }
+    await _handleValue(raw);
+  }
+
+  void _say(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  /// Everything that happens once a value has been read, whichever way it was
+  /// read: pause the camera, check it, show the sheet, record it, resume.
+  Future<void> _handleValue(String raw) async {
     _handling = true;
     await _controller.stop();
     if (!mounted) return;
@@ -283,6 +324,11 @@ class _ScannerScreenState extends ConsumerState<ScannerScreen> {
               _circleButton(
                 icon: Icons.cameraswitch_rounded,
                 onTap: () => _controller.switchCamera(),
+              ),
+              const SizedBox(width: 28),
+              _circleButton(
+                icon: Icons.photo_library_rounded,
+                onTap: _fromGallery,
               ),
             ],
           ),

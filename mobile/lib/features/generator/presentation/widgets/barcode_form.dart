@@ -49,6 +49,7 @@ class _BarcodeFormState extends State<BarcodeForm> {
     final c = context.qrColors;
     final sym = widget.payload.symbology;
     final error = sym.errorFor(_value.text);
+    final suggestion = sym.suggestionFor(_value.text);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -112,6 +113,24 @@ class _BarcodeFormState extends State<BarcodeForm> {
           style: TextStyle(color: c.inkLight, fontSize: 13),
         ),
         const SizedBox(height: 16),
+        if (suggestion != null) ...[
+          const SizedBox(height: 10),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () {
+                _value.text = suggestion;
+                _value.selection = TextSelection.collapsed(
+                  offset: suggestion.length,
+                );
+                _emit(value: suggestion);
+                setState(() {});
+              },
+              icon: const Icon(Icons.auto_fix_high_rounded, size: 18),
+              label: Text('Use $suggestion and let us add the check digit'),
+            ),
+          ),
+        ],
         TextFormField(
           controller: _value,
           keyboardType: sym.digitsOnly
@@ -128,7 +147,10 @@ class _BarcodeFormState extends State<BarcodeForm> {
             errorText: error,
             errorMaxLines: 3,
           ),
-          onChanged: (v) => _emit(value: v),
+          onChanged: (v) {
+            _emit(value: v);
+            setState(() {});
+          },
         ),
       ],
     );

@@ -61,6 +61,25 @@ enum BarcodeSymbology {
     }
   }
 
+  /// A value this symbology WOULD accept, built from what was typed, or null
+  /// when there is no near miss worth offering.
+  ///
+  /// EAN, UPC and ITF end in a check digit. Type it wrong and the code is
+  /// refused, which is right - a wrong check digit scans as a different
+  /// product - but it leaves the person stuck with a dead Save button and no
+  /// way forward. Dropping the last digit lets the library compute the
+  /// correct one, so the form can offer the fix instead of only complaining.
+  /// Never applied silently: the digits printed would not be the digits typed.
+  String? suggestionFor(String value) {
+    final v = value.trim();
+    if (v.isEmpty || accepts(v)) return null;
+    if (!digitsOnly) return null;
+    if (v.length > 1 && accepts(v.substring(0, v.length - 1))) {
+      return v.substring(0, v.length - 1);
+    }
+    return null;
+  }
+
   /// Why [value] was refused, in words the person typing can act on.
   String? errorFor(String value) {
     final v = value.trim();

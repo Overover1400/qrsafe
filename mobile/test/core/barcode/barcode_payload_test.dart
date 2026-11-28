@@ -35,6 +35,28 @@ void main() {
     });
   });
 
+  group('the near-miss suggestion', () {
+    test('offers the typed digits minus the wrong check digit', () {
+      // What a dead Save button looked like before: a full-length number
+      // whose last digit is wrong is refused, and nothing says what to do.
+      const ean = BarcodeSymbology.ean13;
+      expect(ean.accepts('4006381333930'), isFalse);
+      expect(ean.suggestionFor('4006381333930'), '400638133393');
+      expect(ean.accepts(ean.suggestionFor('4006381333930')!), isTrue);
+    });
+
+    test('offers nothing when there is nothing to offer', () {
+      expect(BarcodeSymbology.ean13.suggestionFor(''), isNull);
+      expect(BarcodeSymbology.ean13.suggestionFor('4006381333931'), isNull,
+          reason: 'already valid');
+      expect(BarcodeSymbology.ean13.suggestionFor('12'), isNull,
+          reason: 'far too short to be a near miss');
+      // Code 128 has no check digit to drop, so trimming a character would
+      // just silently change the content.
+      expect(BarcodeSymbology.code128.suggestionFor(''), isNull);
+    });
+  });
+
   group('barcode payload', () {
     test('is valid only when the symbology can encode the value', () {
       const bad = BarcodePayload(
