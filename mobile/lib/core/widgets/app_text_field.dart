@@ -17,6 +17,9 @@ class AppTextField extends StatelessWidget {
     this.maxLines = 1,
     this.maxLength,
     this.obscureText = false,
+    this.errorText,
+    this.errorMaxLines,
+    this.textCapitalization = TextCapitalization.none,
   });
 
   final String label;
@@ -28,6 +31,9 @@ class AppTextField extends StatelessWidget {
   final int maxLines;
   final int? maxLength;
   final bool obscureText;
+  final String? errorText;
+  final int? errorMaxLines;
+  final TextCapitalization textCapitalization;
 
   @override
   Widget build(BuildContext context) {
@@ -40,11 +46,14 @@ class AppTextField extends StatelessWidget {
       maxLines: obscureText ? 1 : maxLines,
       maxLength: maxLength,
       obscureText: obscureText,
+      textCapitalization: textCapitalization,
       style: TextStyle(color: c.inkDark),
       cursorColor: c.inkMid,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
+        errorText: errorText,
+        errorMaxLines: errorMaxLines,
         labelStyle: TextStyle(color: c.inkLight),
         floatingLabelStyle: TextStyle(color: c.inkMid),
         filled: true,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/barcode/barcode_image.dart';
+import '../../../../core/widgets/app_text_field.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../data/code_payload.dart';
 
@@ -130,23 +131,17 @@ class _BarcodeFormState extends State<BarcodeForm> {
             ),
           ),
         ],
-        TextFormField(
+        AppTextField(
+          label: 'Value',
           controller: _value,
+          errorText: error,
+          errorMaxLines: 3,
           keyboardType: sym.digitsOnly
               ? TextInputType.number
               : TextInputType.text,
-          // No digitsOnly formatter: it drops Persian digits before they can
-          // be rewritten as ASCII, so the field would silently eat what was
-          // typed. onChanged converts them instead.
-          inputFormatters: null,
           textCapitalization: sym == BarcodeSymbology.code39
               ? TextCapitalization.characters
               : TextCapitalization.none,
-          decoration: InputDecoration(
-            labelText: 'Value',
-            errorText: error,
-            errorMaxLines: 3,
-          ),
           onChanged: (v) {
             // A Persian keyboard types ۱۲۳. Rewrite them in place rather
             // than refusing the value, so the field shows what will actually
