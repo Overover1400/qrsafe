@@ -45,7 +45,7 @@ func NewCodesHandler(svc CodesService, baseURL string) *CodesHandler {
 }
 
 type createCodeRequest struct {
-	Type      string          `json:"type" validate:"required,oneof=url wifi vcard email text sms multi"`
+	Type      string          `json:"type" validate:"required,oneof=url wifi vcard email text sms multi barcode"`
 	Payload   json.RawMessage `json:"payload" validate:"required"`
 	Label     *string         `json:"label" validate:"omitempty,max=100"`
 	IsDynamic bool            `json:"is_dynamic"`
@@ -121,7 +121,7 @@ func (h *CodesHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := h.validate.Struct(req); err != nil {
 		response.Error(w, http.StatusBadRequest, "validation_error",
-			"type must be one of url/wifi/vcard/email/text/sms, payload is required, label at most 100 chars")
+			"type must be one of url/wifi/vcard/email/text/sms/barcode, payload is required, label at most 100 chars")
 		return
 	}
 	if !codes.IsJSONObject(req.Payload) {

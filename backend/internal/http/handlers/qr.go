@@ -25,7 +25,7 @@ func NewQRHandler() *QRHandler {
 }
 
 type qrRequest struct {
-	Type    string          `json:"type" validate:"required,oneof=url wifi vcard email text sms"`
+	Type    string          `json:"type" validate:"required,oneof=url wifi vcard email text sms barcode"`
 	Payload json.RawMessage `json:"payload" validate:"required"`
 }
 
@@ -40,7 +40,7 @@ func (h *QRHandler) Generate(w http.ResponseWriter, r *http.Request) {
 	}
 	if err := h.validate.Struct(req); err != nil {
 		response.Error(w, http.StatusBadRequest, "validation_error",
-			"type must be one of url/wifi/vcard/email/text/sms and payload is required")
+			"type must be one of url/wifi/vcard/email/text/sms/barcode and payload is required")
 		return
 	}
 	if !codes.IsJSONObject(req.Payload) {
