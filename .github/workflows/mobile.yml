@@ -265,10 +265,12 @@ jobs:
 
   publish-apk:
     name: Publish APK to the download page
-    needs: build-apk
+    # build-aab too, so the signed Play bundle is ready to copy. always() keeps this job
+    # alive when that one is skipped for want of the ANDROID_* secrets.
+    needs: [build-apk, build-aab]
     runs-on: ubuntu-latest
     # Real pushes to main only — never a PR from a fork.
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: always() && needs.build-apk.result == 'success' && github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
       - name: Download APK artifact
@@ -282,6 +284,15 @@ jobs:
         with:
           name: qrsafe-bundle-unsigned
           path: aab
+
+      - name: Download the signed Play bundle
+        # Absent when the ANDROID_* secrets are not set, so this must not fail the job.
+        # The rsync below checks for the file instead.
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: qrsafe-play-bundle
+          path: playaab
 
       - name: Add server to known_hosts
         run: |
@@ -308,3 +319,11 @@ jobs:
           rsync -vz \
             -e "ssh -i $HOME/.ssh/deploy_key -o IdentitiesOnly=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=accept-new" \
             qrsafe-unsigned.aab deploy@193.181.211.239:downloads/qrsafe-unsigned.aab
+          if [ -f playaab/app-release.aab ]; then
+            cp playaab/app-release.aab qrsafe-play.aab
+            rsync -vz \
+              -e "ssh -i $HOME/.ssh/deploy_key -o IdentitiesOnly=yes -o UserKnownHostsFile=$HOME/.ssh/known_hosts -o StrictHostKeyChecking=accept-new" \
+              qrsafe-play.aab deploy@193.181.211.239:downloads/qrsafe-play.aab
+          else
+            echo "No signed Play bundle in this run - the ANDROID_* secrets are missing."
+          fi
